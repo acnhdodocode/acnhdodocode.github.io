@@ -57,8 +57,9 @@
             } catch(e) {}
         }
         function renderInfo(island) {
-            // [修改] 顯示 host_name
-            document.getElementById('info').innerHTML = `<h2>🌴 ${island.island_name}</h2><div style="font-size:2rem;color:#73a0c0;font-weight:bold;margin:10px">${island.dodo_code}</div><p>${t('card_host')} <strong>${island.host_name}</strong> (${t('card_limit')} ${island.max_visitors})</p><p>${t('card_note')} ${island.note||'-'}</p>`;
+            // [修改] 優先使用 island.username
+            const hostName = island.username || island.user_email.split('@')[0];
+            document.getElementById('info').innerHTML = `<h2>🌴 ${island.island_name}</h2><div style="font-size:2rem;color:#73a0c0;font-weight:bold;margin:10px">${island.dodo_code}</div><p>${t('card_host')} <strong>${hostName}</strong> (${t('card_limit')} ${island.max_visitors})</p><p>${t('card_note')} ${island.note||'-'}</p>`;
             if(island.notice) { document.getElementById('notice-box').style.display="block"; document.getElementById('notice-content').innerText=island.notice; }
         }
         function renderQueue(queue, serverTimeStr, max) {
