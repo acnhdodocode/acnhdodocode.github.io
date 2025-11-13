@@ -35,16 +35,22 @@
     <script>
         const API_URL = "https://api.ttctv-105.cc";
         const user = JSON.parse(localStorage.getItem('acnh_user'));
+        const userBar = document.getElementById('user-bar');
+        const authBtn = document.getElementById('auth-btn');
+
         if (user) {
-            document.getElementById('user-bar').innerText = `${user.username}`;
-            document.getElementById('auth-btn').setAttribute('data-i18n', 'nav_logout');
-            document.getElementById('auth-btn').style.backgroundColor = "#d9534f";
-            document.getElementById('auth-btn').onclick = () => { if(confirm(t('nav_logout')+"?")) { localStorage.removeItem('acnh_user'); window.location.reload(); }};
+            userBar.innerText = `${user.username}`;
+            authBtn.setAttribute('data-i18n', 'nav_logout');
+            authBtn.innerText = t('nav_logout'); 
+            authBtn.style.backgroundColor = "#d9534f";
+            authBtn.onclick = () => { if(confirm(t('nav_logout')+"?")) { localStorage.removeItem('acnh_user'); window.location.reload(); }};
         } else {
-            document.getElementById('auth-btn').setAttribute('data-i18n', 'nav_login');
-            document.getElementById('auth-btn').style.backgroundColor = "#73a0c0";
-            document.getElementById('auth-btn').onclick = () => { window.location.href = "login.html"; };
+            authBtn.setAttribute('data-i18n', 'nav_login');
+            authBtn.innerText = t('nav_login');
+            authBtn.style.backgroundColor = "#73a0c0";
+            authBtn.onclick = () => { window.location.href = "login.html"; };
         }
+
         async function loadIslands() {
             const list = document.getElementById('list');
             list.innerHTML = `<p style='text-align:center'>${t('status_loading')}</p>`;
@@ -52,14 +58,29 @@
                 const res = await fetch(`${API_URL}/islands`);
                 const json = await res.json();
                 list.innerHTML = "";
-                if(!json.data || json.data.length===0) { list.innerHTML = `<p style='text-align:center;width:100%;color:#999'>${t('status_no_island')}</p>`; return; }
+                
+                if(!json.data || json.data.length === 0) { 
+                    list.innerHTML = `<p style='text-align:center; width:100%; color:#999;'>${t('status_no_island')}</p>`; 
+                    return; 
+                }
+
                 json.data.forEach(island => {
+                    const queueCount = island.queue_count || 0;
+                    const max = island.max_visitors || 4;
                     const div = document.createElement('div');
                     div.className = 'card';
-                    div.innerHTML = `<div class="people-count">${t('queue_count', island.queue_count)}</div><div class="card-h"><span>${island.island_name}</span></div><div>${t('card_host')} ${island.username.split('@')[0]}</div><div>${t('card_limit')} ${island.max_visitors}</div><div>${t('card_note')} ${island.note||'-'}</div><a href="island.html?host=${encodeURIComponent(island.username)}" class="btn-go">${t('btn_go')}</a>`;
+                    // [修改] 這裡改用 host_name
+                    div.innerHTML = `
+                        <div class="people-count">${t('queue_count', queueCount)}</div>
+                        <div class="card-h"><span>${island.island_name}</span></div>
+                        <div>${t('card_host')} <strong>${island.host_name}</strong></div>
+                        <div>${t('card_limit')} ${max}</div>
+                        <div>${t('card_note')} ${island.note || '-'}</div>
+                        <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">${t('btn_go')}</a>
+                    `;
                     list.appendChild(div);
                 });
-            } catch(e) { list.innerHTML = `<p style='text-align:center;color:red'>${t('ERR_CONNECT')}</p>`; }
+            } catch(e) { list.innerHTML = `<p style='text-align:center; color:red'>${t('ERR_CONNECT')}</p>`; }
         }
         loadIslands();
     </script>
