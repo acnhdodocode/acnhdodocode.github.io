@@ -19,26 +19,38 @@
     </style>
 </head>
 <body>
-    <header><h1>🍃 動森島嶼中心</h1><div id="user-bar" style="font-weight:bold;color:#73a0c0;margin-top:10px"></div></header>
+    <header>
+        <h1>🍃 動森島嶼中心</h1>
+        <div id="user-bar" style="font-weight:bold; color:#73a0c0; margin-top:10px; height: 20px;"></div>
+    </header>
+    
     <nav>
-        <a href="host-page.html" class="button">我嘅島嶼 (Host)</a>
-        <button onclick="loadIslands()" class="button refresh">F5 列表</button>
+        <a href="host-page.html" class="button">我的島嶼 (Host)</a>
+        <button onclick="loadIslands()" class="button refresh">F5 更新列表</button>
         <button id="auth-btn" class="button">載入中...</button>
     </nav>
+    
     <main id="list"></main>
 
     <script>
         const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP
+        
         const user = JSON.parse(localStorage.getItem('acnh_user'));
         const userBar = document.getElementById('user-bar');
         const authBtn = document.getElementById('auth-btn');
 
         if (user) {
-            userBar.innerText = `Hi, ${user.username}`;
+            userBar.innerText = `你好，${user.username}`;
             authBtn.innerText = "登出";
             authBtn.style.backgroundColor = "#d9534f";
-            authBtn.onclick = () => { if(confirm("確定登出？")) { localStorage.removeItem('acnh_user'); window.location.reload(); }};
+            authBtn.onclick = () => { 
+                if(confirm("確定要登出嗎？")) {
+                    localStorage.removeItem('acnh_user'); 
+                    window.location.reload(); 
+                }
+            };
         } else {
+            userBar.innerText = ""; 
             authBtn.innerText = "登入";
             authBtn.style.backgroundColor = "#73a0c0";
             authBtn.onclick = () => { window.location.href = "login.html"; };
@@ -52,7 +64,10 @@
                 const json = await res.json();
                 list.innerHTML = "";
                 
-                if(!json.data || json.data.length === 0) { list.innerHTML = "<p style='text-align:center;width:100%;color:#999;'>暫無開放島嶼</p>"; return; }
+                if(!json.data || json.data.length === 0) { 
+                    list.innerHTML = "<p style='text-align:center; width:100%; color:#999;'>暫無開放島嶼</p>"; 
+                    return; 
+                }
 
                 json.data.forEach(island => {
                     const queueCount = island.queue_count || 0;
@@ -60,17 +75,20 @@
                     const div = document.createElement('div');
                     div.className = 'card';
                     div.innerHTML = `
-                        <div class="people-count">👫 ${queueCount} 人排隊</div>
+                        <div class="people-count">👫 ${queueCount} 人排隊中</div>
                         <div class="card-h"><span>${island.island_name}</span></div>
-                        <div>Host: ${island.user_email.split('@')[0]}</div>
-                        <div>限制: ${max} 人</div>
-                        <div>備註: ${island.note || '-'}</div>
+                        <div>島主：${island.user_email.split('@')[0]}</div>
+                        <div>限制人數：${max} 人</div>
+                        <div>備註：${island.note || '-'}</div>
                         <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">👉 進入排隊 / 詳情</a>
                     `;
                     list.appendChild(div);
                 });
-            } catch(e) { list.innerHTML = "<p style='text-align:center;color:red'>連線失敗</p>"; }
+            } catch(e) { 
+                list.innerHTML = `<p style='text-align:center; color:red'>連線失敗 (${e.message})<br>請確認 Server (Port 9000) 已啟動</p>`; 
+            }
         }
+        
         loadIslands();
     </script>
 </body>
