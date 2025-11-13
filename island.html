@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>排隊詳情</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script src="lang.js"></script>
     <style>
         body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px;margin:0}
         .container{max-width:800px;margin:0 auto}
@@ -24,32 +25,34 @@
 </head>
 <body>
     <div class="container">
-        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold">← 返回列表</a>
-        <div id="info" class="section" style="text-align:center">載入中...</div>
+        <div style="text-align:right;margin-bottom:10px"><select id="lang-selector"></select></div>
+        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold" data-i18n="link_back_list">← 返回列表</a>
+        
+        <div id="info" class="section" style="text-align:center" data-i18n="status_loading">載入中...</div>
         
         <div class="section" style="border-color:#73a0c0">
-            <h3>👫 排隊列表 (每5秒更新)</h3>
+            <h3 data-i18n="queue_list_title">👫 排隊列表</h3>
             <div id="status-bar" style="margin-bottom:10px;font-weight:bold"></div>
             <ul id="list"></ul>
             <div id="action" style="text-align:center;padding:20px;background:#ecf0f1;border-radius:10px;margin-top:20px"></div>
             <div id="notice-box" style="display:none; margin-top:20px; padding:15px; background:#fff3cd; border:1px solid #ffeeba; color:#856404; border-radius:10px;">
-                <h4 style="margin:0 0 10px 0;">⚠️ 島主注意事項</h4>
+                <h4 style="margin:0 0 10px 0;" data-i18n="lbl_notice">⚠️ 島主注意事項</h4>
                 <div id="notice-content" style="white-space: pre-line;"></div>
             </div>
         </div>
 
         <div class="section" style="border-color:#f1c40f">
-            <h3>💬 留言板</h3>
+            <h3 data-i18n="board_title">💬 留言板</h3>
             <div id="chat-list" class="chat-box"></div>
             <div class="input-group">
-                <input type="text" id="chat-input" placeholder="請輸入留言...">
-                <button onclick="sendComment()" class="btn blue" style="margin:0">發送</button>
+                <input type="text" id="chat-input" data-i18n-ph="ph_chat" placeholder="請輸入留言...">
+                <button onclick="sendComment()" class="btn blue" style="margin:0" data-i18n="btn_send">發送</button>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP
+        const API_URL = "https://api.ttctv-105.cc";
         const urlParams = new URLSearchParams(window.location.search);
         const hostEmail = urlParams.get('host');
         const user = JSON.parse(localStorage.getItem('acnh_user'));
@@ -63,7 +66,7 @@
                 const res = await fetch(`${API_URL}/island-detail?hostEmail=${encodeURIComponent(hostEmail)}`);
                 const json = await res.json();
                 if(json.status === 'error') {
-                    document.getElementById('info').innerHTML = `<h2>${json.message}</h2>`;
+                    document.getElementById('info').innerHTML = `<h2>${t(json.message)}</h2>`;
                     document.getElementById('action').style.display = 'none'; return;
                 }
                 renderInfo(json.island);
@@ -76,8 +79,8 @@
             document.getElementById('info').innerHTML = `
                 <h2>🌴 ${island.island_name}</h2>
                 <div style="font-size:2rem;color:#73a0c0;font-weight:bold;margin:10px">${island.dodo_code}</div>
-                <p>Host: ${island.user_email} (限 ${island.max_visitors} 人)</p>
-                <p>備註: ${island.note || '無'}</p>
+                <p>${t('card_host')} ${island.user_email} (${t('card_limit')} ${island.max_visitors})</p>
+                <p>${t('card_note')} ${island.note || '-'}</p>
             `;
             if (island.notice && island.notice.trim() !== "") {
                 document.getElementById('notice-box').style.display = "block";
@@ -100,9 +103,10 @@
             });
 
             const isFull = currentOnIsland >= maxVisitors;
-            statusBar.innerHTML = `島上人數: ${currentOnIsland} / ${maxVisitors} ${isFull ? '<span style="color:red">(已滿)</span>' : '<span style="color:green">(有名額)</span>'}`;
+            const statusText = isFull ? t('status_island_full') : t('status_island_avail');
+            statusBar.innerHTML = `${currentOnIsland} / ${maxVisitors} <span style="color:${isFull?'red':'green'}">(${statusText})</span>`;
 
-            if(queue.length === 0) list.innerHTML = "<li style='justify-content:center;color:#999'>暫時無人排隊</li>";
+            if(queue.length === 0) list.innerHTML = `<li style='justify-content:center;color:#999'>${t('msg_no_queue')}</li>`;
 
             queue.forEach((q, idx) => {
                 let statusHtml = "";
@@ -111,32 +115,32 @@
                     const diff = endTime - serverNow;
                     if(diff > 0) {
                         const m = Math.floor(diff/60000); const s = Math.floor((diff%60000)/1000);
-                        statusHtml = `<span class="play">🏝️ 遊玩中 (剩餘 ${m}分${s}秒)</span>`;
-                    } else statusHtml = `<span style="color:red">時間到</span>`;
+                        statusHtml = `<span class="play">${t('status_playing')} (${m}m${s}s)</span>`;
+                    } else statusHtml = `<span style="color:red">${t('status_time_up')}</span>`;
                 } else if (q.status === 'pending_entry') {
                     const endTime = new Date(q.pending_start_time).getTime() + (30 * 1000);
                     const diff = Math.floor((endTime - serverNow) / 1000);
-                    if(diff > 0) statusHtml = `<span class="pending">🔔 請入島！剩餘 ${diff} 秒</span>`;
-                    else statusHtml = `<span style="color:red">逾時</span>`;
-                } else statusHtml = `<span class="wait">等待中</span>`;
+                    if(diff > 0) statusHtml = `<span class="pending">${t('status_pending')} ${diff}s</span>`;
+                    else statusHtml = `<span style="color:red">${t('status_timeout')}</span>`;
+                } else statusHtml = `<span class="wait">${t('status_waiting')}</span>`;
                 list.innerHTML += `<li><span>${q.visitor_name}</span>${statusHtml}</li>`;
             });
 
-            if(!user) action.innerHTML = `<a href="login.html" class="btn blue" style="text-decoration:none">請先登入</a>`;
-            else if(hostEmail === user.email) action.innerHTML = `<p>您是島主。</p>`;
-            else if(!myStatus) action.innerHTML = `<button onclick="api('join')" class="btn blue">➕ 加入排隊</button>`;
-            else if(myStatus === 'waiting') action.innerHTML = `<p>排隊中... 請等候通知</p><button onclick="api('leave')" class="btn red">❌ 取消排隊</button>`;
+            if(!user) action.innerHTML = `<a href="login.html" class="btn blue" style="text-decoration:none">${t('btn_please_login')}</a>`;
+            else if(hostEmail === user.email) action.innerHTML = `<p>${t('btn_you_are_host')}</p>`;
+            else if(!myStatus) action.innerHTML = `<button onclick="api('join')" class="btn blue">${t('btn_join')}</button>`;
+            else if(myStatus === 'waiting') action.innerHTML = `<p>${t('text_wait')}</p><button onclick="api('leave')" class="btn red">${t('btn_leave')}</button>`;
             else if(myStatus === 'pending_entry') {
                 const endTime = new Date(myData.pending_start_time).getTime() + (30 * 1000);
                 const diff = Math.floor((endTime - serverNow) / 1000);
-                action.innerHTML = `<h3 style="color:#d35400">🎉 輪到您了！</h3><p style="font-weight:bold;color:red">請於 ${diff>0?diff:0} 秒內確認，否則重新排隊。</p><button onclick="api('enter')" class="btn green">✈️ 我已起飛</button><button onclick="api('leave')" class="btn red">❌ 放棄</button>`;
-            } else if(myStatus === 'on_island') action.innerHTML = `<h3 style="color:#c0392b">計時中！請於 10 分鐘內離開。</h3><button onclick="api('leave')" class="btn red">👋 我已離開</button>`;
+                action.innerHTML = `<h3 style="color:#d35400">${t('text_your_turn', diff>0?diff:0)}</h3><button onclick="api('enter')" class="btn green">${t('btn_enter')}</button><button onclick="api('leave')" class="btn red">${t('btn_leave')}</button>`;
+            } else if(myStatus === 'on_island') action.innerHTML = `<h3 style="color:#c0392b">${t('text_playing')}</h3><button onclick="api('leave')" class="btn red">${t('btn_leave_island')}</button>`;
         }
 
         function renderComments(comments) {
             const chatList = document.getElementById('chat-list');
             let html = "";
-            if(!comments || comments.length === 0) html = "<div style='color:#999;text-align:center'>暫無留言</div>";
+            if(!comments || comments.length === 0) html = `<div style='color:#999;text-align:center'>${t('msg_no_chat')}</div>`;
             else comments.forEach(c => {
                 const time = new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 const style = c.user_email === hostEmail ? "color:#d35400" : "";
@@ -148,7 +152,7 @@
 
         async function sendComment() {
             const msg = document.getElementById('chat-input').value.trim();
-            if(!user) { alert("請先登入"); return; }
+            if(!user) { alert(t('btn_please_login')); return; }
             if(!msg) return;
             await fetch(`${API_URL}/comment`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ hostEmail, userEmail: user.email, userName: user.username, message: msg }) });
             document.getElementById('chat-input').value = ""; loadData();
@@ -157,7 +161,7 @@
         async function api(act) {
             const res = await fetch(`${API_URL}/queue/${act}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ hostEmail, visitorEmail: user.email, visitorName: user.username }) });
             const json = await res.json();
-            if(json.status === 'error') alert(json.message);
+            if(json.status === 'error') alert(t(json.message));
             loadData();
         }
     </script>
