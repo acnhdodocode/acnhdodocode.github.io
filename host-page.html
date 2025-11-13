@@ -2,81 +2,166 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>管理我的島嶼v3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理我的島嶼v4</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <script src="lang.js"></script>
-    <style>body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px}.box{max-width:600px;margin:0 auto;background:white;padding:30px;border-radius:15px;border:2px solid #96C8A4}input,textarea,select{width:100%;padding:12px;margin:5px 0 15px 0;border:2px solid #ddd;border-radius:10px;box-sizing:border-box;font-family:inherit;font-size:1rem}label{font-weight:bold;color:#4A7A5C}.btn{width:100%;padding:15px;border:none;border-radius:10px;cursor:pointer;color:white;font-size:1.2rem}.green{background:#96C8A4} .red{background:#d9534f} .blue{background:#73a0c0}</style>
+    <style>
+        body { font-family: 'Nunito', sans-serif; background: #F5F5E8; color: #8B5A2B; padding: 20px; margin: 0; }
+        .box { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; border: 2px solid #96C8A4; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        input, textarea, select { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
+        input:focus, textarea:focus, select:focus { border-color: #73a0c0; outline: none; }
+        label { font-weight: bold; color: #4A7A5C; display: block; margin-top: 10px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; color: white; font-size: 1.2rem; margin-top: 10px; transition: 0.2s; font-weight: bold; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .green { background: #96C8A4; } 
+        .red { background: #d9534f; } 
+        .blue { background: #73a0c0; }
+        
+        /* 頂部導航樣式 */
+        .header-nav { text-align: center; margin-bottom: 20px; }
+        .header-nav h1 { color: #4A7A5C; margin-bottom: 10px; }
+        .header-nav a { text-decoration: none; color: #73a0c0; font-weight: bold; }
+        #lang-selector { padding: 5px; border-radius: 5px; border: 1px solid #ddd; }
+        .user-greeting { color: #73a0c0; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 1.1rem; }
+    </style>
 </head>
 <body>
-    <div style="text-align:center;margin-bottom:20px">
-        <h1 data-i18n="host_title"></h1>
-        <div style="margin-bottom:10px"><select id="lang-selector"></select></div>
-        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold" data-i18n="link_home"></a>
+
+    <div class="header-nav">
+        <h1 data-i18n="host_title">✈️ 管理我的島嶼</h1>
+        <div style="margin-bottom:10px">
+            <select id="lang-selector"></select>
+        </div>
+        <a href="index.html" data-i18n="link_home">← 返回首頁</a>
     </div>
-    <div class="box" id="content" data-i18n="status_loading"></div>
+
+    <div class="box" id="content">
+        <p style="text-align:center" data-i18n="status_loading">載入中...</p>
+    </div>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc";
+        const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP 是否正確
         const user = JSON.parse(localStorage.getItem('acnh_user'));
-        if(!user) window.location.href="login.html";
+
+        // 如果未登入，踢回登入頁
+        if (!user) {
+            alert("請先登入 / Please login first");
+            window.location.href = "login.html";
+        }
 
         const content = document.getElementById('content');
+        
+        // 初始化檢查狀態
         checkStatus();
 
         async function checkStatus() {
             try {
                 const res = await fetch(`${API_URL}/my-status?email=${encodeURIComponent(user.email)}`);
                 const json = await res.json();
-                if(json.data) showClose(json.data); else showHost();
-            } catch(e) { content.innerHTML = t('ERR_CONNECT'); }
+                
+                if (json.status === 'success' && json.data) {
+                    showClose(json.data);
+                } else {
+                    showHost();
+                }
+            } catch (e) {
+                content.innerHTML = `<p style='text-align:center; color:red'>${t('ERR_CONNECT')}</p>`;
+            }
         }
 
         function showHost() {
             content.innerHTML = `
-                <h3 data-i18n="btn_open">${t('btn_open')}</h3>
+                <div class="user-greeting">Hi, ${user.username}</div>
+                
+                <h3 style="text-align:center; color:#4A7A5C" data-i18n="btn_open">${t('btn_open')}</h3>
+                
                 <label data-i18n="lbl_dodo">${t('lbl_dodo')}</label>
                 <input id="dodo" placeholder="5 Code" maxlength="5">
+                
                 <label data-i18n="lbl_island_name">${t('lbl_island_name')}</label>
-                <input id="name" value="${user.username}">
+                <input id="name" value="${user.username}的島">
+                
                 <label data-i18n="lbl_limit">${t('lbl_limit')}</label>
-                <select id="maxUsers"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+                <select id="maxUsers">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4" selected>4 (Recommended)</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                </select>
+                
                 <label style="color:#e67e22" data-i18n="lbl_notice">${t('lbl_notice')}</label>
                 <textarea id="notice" placeholder="${t('ph_notice')}"></textarea>
+                
                 <label data-i18n="lbl_note">${t('lbl_note')}</label>
                 <textarea id="note" placeholder="${t('ph_note')}"></textarea>
+                
                 <button onclick="host()" class="btn green" data-i18n="btn_open">${t('btn_open')}</button>
             `;
         }
 
         function showClose(data) {
             content.innerHTML = `
+                <div class="user-greeting">Hi, ${user.username}</div>
+
                 <h3 style="text-align:center;color:#4A7A5C" data-i18n="status_open">${t('status_open')}</h3>
-                <p>${t('lbl_island_name')}: ${data.island_name}</p>
-                <p style="font-size:1.5rem;color:#73a0c0;font-weight:bold;text-align:center">${data.dodo_code}</p>
-                <a href="island.html?host=${encodeURIComponent(user.email)}" class="btn blue" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-bottom:10px">${t('btn_view_queue')}</a>
-                <button onclick="closeIsland()" class="btn red">${t('btn_close')}</button>
+                
+                <div style="text-align:center; margin: 20px 0;">
+                    <p><strong>${t('lbl_island_name')}:</strong> ${data.island_name}</p>
+                    <p><strong>${t('lbl_limit')}:</strong> ${data.max_visitors}</p>
+                    <div style="font-size:2.5rem; color:#73a0c0; font-weight:bold; letter-spacing: 2px; margin: 10px 0;">
+                        ${data.dodo_code}
+                    </div>
+                </div>
+
+                <a href="island.html?host=${encodeURIComponent(user.email)}" class="btn blue" style="display:block; text-align:center; text-decoration:none; box-sizing:border-box; margin-bottom:10px">
+                    ${t('btn_view_queue')}
+                </a>
+                
+                <button onclick="closeIsland()" class="btn red" data-i18n="btn_close">${t('btn_close')}</button>
             `;
         }
 
         async function host() {
+            const dodo = document.getElementById('dodo').value;
+            if(!dodo || dodo.length !== 5) { alert("Dodo Code 必須是 5 位數"); return; }
+
             const payload = {
                 email: user.email, 
-                username: user.username, // [關鍵新增] 直接傳送用戶名
                 islandName: document.getElementById('name').value,
-                dodoCode: document.getElementById('dodo').value, 
+                dodoCode: dodo, 
                 note: document.getElementById('note').value,
-                maxVisitors: document.getElementById('maxUsers').value, 
+                maxVisitors: document.getElementById('maxUsers').value,
                 notice: document.getElementById('notice').value
             };
-            const res = await fetch(`${API_URL}/host`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+
+            const res = await fetch(`${API_URL}/host`, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(payload) 
+            });
+            
             const json = await res.json();
-            if(json.status === 'error') alert(t(json.message));
-            checkStatus();
+            if (json.status === 'error') {
+                alert(t(json.message));
+            } else {
+                // 成功後刷新狀態
+                checkStatus();
+            }
         }
 
         async function closeIsland() {
-            if(!confirm(t('btn_close')+"?")) return;
-            await fetch(`${API_URL}/close`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email: user.email}) });
+            if (!confirm(t('btn_close') + "?")) return;
+            
+            await fetch(`${API_URL}/close`, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ email: user.email }) 
+            });
+            
             checkStatus();
         }
     </script>
