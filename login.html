@@ -1,41 +1,37 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>登入</title>
+    <title>Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script src="lang.js"></script>
     <style>body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}.box{background:white;padding:40px;border-radius:15px;border:2px solid #73a0c0;width:100%;max-width:400px}input{width:100%;padding:12px;margin:10px 0;border:2px solid #ddd;border-radius:8px;box-sizing:border-box}button{width:100%;padding:12px;background:#73a0c0;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold}a{display:block;text-align:center;margin-top:15px;color:#96C8A4;text-decoration:none}</style>
 </head>
 <body>
     <div class="box">
-        <h2 style="text-align:center;color:#73a0c0">🔑 登入</h2>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="密碼" required>
-        <button onclick="login()">登入</button>
-        <a href="forgot-password.html" style="color:#d35400; font-size:0.9rem; margin-top:10px;">忘記密碼？</a>
+        <div style="text-align:right"><select id="lang-selector"></select></div>
+        <h2 style="text-align:center;color:#73a0c0" data-i18n="login_title"></h2>
+        <input type="email" id="email" data-i18n-ph="ph_email">
+        <input type="password" id="password" data-i18n-ph="ph_pwd">
+        <button onclick="login()" data-i18n="btn_login"></button>
+        <a href="forgot-password.html" style="color:#d35400;font-size:0.9rem" data-i18n="link_forgot"></a>
         <div id="msg" style="text-align:center;margin-top:10px;color:red"></div>
         <hr style="border:0; border-top:1px dashed #ccc; margin:20px 0">
-        <a href="register.html">註冊新帳號</a>
-        <a href="index.html" style="color:#888">返回首頁</a>
+        <a href="register.html" data-i18n="link_register"></a>
+        <a href="index.html" style="color:#888" data-i18n="link_home"></a>
     </div>
     <script>
-        const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP
+        const API_URL = "https://api.ttctv-105.cc";
         async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const msg = document.getElementById('msg');
-            msg.innerText = "處理中...";
             try {
-                const res = await fetch(`${API_URL}/login`, {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ email, password })
-                });
+                const res = await fetch(`${API_URL}/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password}) });
                 const data = await res.json();
-                if (data.status === 'success') {
-                    localStorage.setItem('acnh_user', JSON.stringify(data.user));
-                    window.location.href = "index.html";
-                } else { msg.innerText = data.message; }
-            } catch (e) { msg.innerText = "連線失敗"; }
+                if (data.status === 'success') { localStorage.setItem('acnh_user', JSON.stringify(data.user)); window.location.href="index.html"; }
+                else msg.innerText = t(data.message);
+            } catch(e) { msg.innerText = t('ERR_CONNECT'); }
         }
     </script>
 </body>
