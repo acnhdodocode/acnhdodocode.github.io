@@ -25,7 +25,6 @@
 <body>
     <div class="container">
         <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold">← 返列表</a>
-        
         <div id="info" class="section" style="text-align:center">載入中...</div>
         
         <div class="section" style="border-color:#73a0c0">
@@ -33,7 +32,6 @@
             <div id="status-bar" style="margin-bottom:10px;font-weight:bold"></div>
             <ul id="list"></ul>
             <div id="action" style="text-align:center;padding:20px;background:#ecf0f1;border-radius:10px;margin-top:20px"></div>
-            
             <div id="notice-box" style="display:none; margin-top:20px; padding:15px; background:#fff3cd; border:1px solid #ffeeba; color:#856404; border-radius:10px;">
                 <h4 style="margin:0 0 10px 0;">⚠️ 島主注意事項</h4>
                 <div id="notice-content" style="white-space: pre-line;"></div>
@@ -51,7 +49,7 @@
     </div>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc";
+        const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP
         const urlParams = new URLSearchParams(window.location.search);
         const hostEmail = urlParams.get('host');
         const user = JSON.parse(localStorage.getItem('acnh_user'));
@@ -64,13 +62,10 @@
             try {
                 const res = await fetch(`${API_URL}/island-detail?hostEmail=${encodeURIComponent(hostEmail)}`);
                 const json = await res.json();
-
                 if(json.status === 'error') {
                     document.getElementById('info').innerHTML = `<h2>${json.message}</h2>`;
-                    document.getElementById('action').style.display = 'none';
-                    return;
+                    document.getElementById('action').style.display = 'none'; return;
                 }
-                
                 renderInfo(json.island);
                 renderQueue(json.queue, json.serverTime, json.island.max_visitors);
                 renderComments(json.comments);
@@ -84,13 +79,10 @@
                 <p>Host: ${island.user_email} (限 ${island.max_visitors} 人)</p>
                 <p>備註: ${island.note || '無'}</p>
             `;
-            // 顯示注意事項
             if (island.notice && island.notice.trim() !== "") {
                 document.getElementById('notice-box').style.display = "block";
                 document.getElementById('notice-content').innerText = island.notice;
-            } else {
-                document.getElementById('notice-box').style.display = "none";
-            }
+            } else { document.getElementById('notice-box').style.display = "none"; }
         }
 
         function renderQueue(queue, serverTimeStr, maxVisitors) {
@@ -99,9 +91,7 @@
             const statusBar = document.getElementById('status-bar');
             list.innerHTML = "";
             
-            let myStatus = null;
-            let myData = null;
-            let currentOnIsland = 0;
+            let myStatus = null, myData = null, currentOnIsland = 0;
             const serverNow = new Date(serverTimeStr).getTime();
 
             queue.forEach(q => {
@@ -120,57 +110,39 @@
                     const endTime = new Date(q.start_time).getTime() + (10 * 60 * 1000);
                     const diff = endTime - serverNow;
                     if(diff > 0) {
-                        const m = Math.floor(diff/60000);
-                        const s = Math.floor((diff%60000)/1000);
+                        const m = Math.floor(diff/60000); const s = Math.floor((diff%60000)/1000);
                         statusHtml = `<span class="play">🏝️ 玩樂中 (${m}分${s}秒)</span>`;
-                    } else {
-                        statusHtml = `<span style="color:red">時間到</span>`;
-                    }
+                    } else statusHtml = `<span style="color:red">時間到</span>`;
                 } else if (q.status === 'pending_entry') {
                     const endTime = new Date(q.pending_start_time).getTime() + (30 * 1000);
                     const diff = Math.floor((endTime - serverNow) / 1000);
                     if(diff > 0) statusHtml = `<span class="pending">🔔 請入島！剩餘 ${diff} 秒</span>`;
                     else statusHtml = `<span style="color:red">逾時</span>`;
-                } else {
-                    statusHtml = `<span class="wait">等待中</span>`;
-                }
+                } else statusHtml = `<span class="wait">等待中</span>`;
                 list.innerHTML += `<li><span>${q.visitor_name}</span>${statusHtml}</li>`;
             });
 
-            if(!user) {
-                action.innerHTML = `<a href="login.html" class="btn blue" style="text-decoration:none">請先登入</a>`;
-            } else if(hostEmail === user.email) {
-                 action.innerHTML = `<p>你係島主。</p>`;
-            } else if(!myStatus) {
-                action.innerHTML = `<button onclick="api('join')" class="btn blue">➕ 加入排隊</button>`;
-            } else if(myStatus === 'waiting') {
-                action.innerHTML = `<p>排隊中... 有位時會通知你。</p><button onclick="api('leave')" class="btn red">❌ 唔排了</button>`;
-            } else if(myStatus === 'pending_entry') {
+            if(!user) action.innerHTML = `<a href="login.html" class="btn blue" style="text-decoration:none">請先登入</a>`;
+            else if(hostEmail === user.email) action.innerHTML = `<p>你係島主。</p>`;
+            else if(!myStatus) action.innerHTML = `<button onclick="api('join')" class="btn blue">➕ 加入排隊</button>`;
+            else if(myStatus === 'waiting') action.innerHTML = `<p>排隊中... 請等候通知</p><button onclick="api('leave')" class="btn red">❌ 唔排了</button>`;
+            else if(myStatus === 'pending_entry') {
                 const endTime = new Date(myData.pending_start_time).getTime() + (30 * 1000);
                 const diff = Math.floor((endTime - serverNow) / 1000);
-                action.innerHTML = `
-                    <h3 style="color:#d35400">🎉 輪到你了！</h3>
-                    <p style="font-weight:bold;color:red">請於 ${diff>0?diff:0} 秒內確認，否則重排。</p>
-                    <button onclick="api('enter')" class="btn green">✈️ 我已起飛</button>
-                    <button onclick="api('leave')" class="btn red">❌ 放棄</button>
-                `;
-            } else if(myStatus === 'on_island') {
-                action.innerHTML = `<h3 style="color:#c0392b">計時中！請於 10 分鐘內離開。</h3><button onclick="api('leave')" class="btn red">👋 我已離開</button>`;
-            }
+                action.innerHTML = `<h3 style="color:#d35400">🎉 輪到你了！</h3><p style="font-weight:bold;color:red">請於 ${diff>0?diff:0} 秒內確認，否則重排。</p><button onclick="api('enter')" class="btn green">✈️ 我已起飛</button><button onclick="api('leave')" class="btn red">❌ 放棄</button>`;
+            } else if(myStatus === 'on_island') action.innerHTML = `<h3 style="color:#c0392b">計時中！請於 10 分鐘內離開。</h3><button onclick="api('leave')" class="btn red">👋 我已離開</button>`;
         }
 
         function renderComments(comments) {
             const chatList = document.getElementById('chat-list');
             let html = "";
             if(!comments || comments.length === 0) html = "<div style='color:#999;text-align:center'>暫時未有留言</div>";
-            else {
-                comments.forEach(c => {
-                    const time = new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    const style = c.user_email === hostEmail ? "color:#d35400" : "";
-                    const isHost = c.user_email === hostEmail ? " (Host)" : "";
-                    html += `<div class="msg-item"><span class="msg-user" style="${style}">${c.user_name}${isHost}</span><span class="msg-time">${time}</span><div>${c.message}</div></div>`;
-                });
-            }
+            else comments.forEach(c => {
+                const time = new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const style = c.user_email === hostEmail ? "color:#d35400" : "";
+                const isHost = c.user_email === hostEmail ? " (Host)" : "";
+                html += `<div class="msg-item"><span class="msg-user" style="${style}">${c.user_name}${isHost}</span><span class="msg-time">${time}</span><div>${c.message}</div></div>`;
+            });
             chatList.innerHTML = html;
         }
 
@@ -178,19 +150,12 @@
             const msg = document.getElementById('chat-input').value.trim();
             if(!user) { alert("請先登入"); return; }
             if(!msg) return;
-            await fetch(`${API_URL}/comment`, {
-                method: 'POST', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ hostEmail, userEmail: user.email, userName: user.username, message: msg })
-            });
-            document.getElementById('chat-input').value = "";
-            loadData();
+            await fetch(`${API_URL}/comment`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ hostEmail, userEmail: user.email, userName: user.username, message: msg }) });
+            document.getElementById('chat-input').value = ""; loadData();
         }
 
         async function api(act) {
-            const res = await fetch(`${API_URL}/queue/${act}`, {
-                method: 'POST', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ hostEmail, visitorEmail: user.email, visitorName: user.username })
-            });
+            const res = await fetch(`${API_URL}/queue/${act}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ hostEmail, visitorEmail: user.email, visitorName: user.username }) });
             const json = await res.json();
             if(json.status === 'error') alert(json.message);
             loadData();
