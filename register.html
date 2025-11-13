@@ -4,27 +4,35 @@
     <meta charset="UTF-8">
     <title>註冊</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <style>body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}.box{background:white;padding:40px;border-radius:15px;border:2px solid #96C8A4;width:100%;max-width:400px}input{width:100%;padding:12px;margin:5px 0;border:2px solid #ddd;border-radius:8px;box-sizing:border-box}button{width:100%;padding:12px;background:#96C8A4;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px}a{display:block;text-align:center;margin-top:15px;color:#73a0c0;text-decoration:none}label{font-weight:bold;color:#4A7A5C;display:block;margin-top:10px;text-align:left}</style>
+    <style>body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}.box{background:white;padding:40px;border-radius:15px;border:2px solid #96C8A4;width:100%;max-width:400px}input{width:100%;padding:12px;margin:5px 0;border:2px solid #ddd;border-radius:8px;box-sizing:border-box}button{width:100%;padding:12px;background:#96C8A4;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px}a{display:block;text-align:center;margin-top:15px;color:#73a0c0;text-decoration:none}label{font-weight:bold;color:#4A7A5C;display:block;margin-top:10px;text-align:left}.tips{font-size:0.8rem;color:#888;margin-bottom:5px;display:block;text-align:left}</style>
 </head>
 <body>
     <div class="box">
         <h2 style="text-align:center;color:#4A7A5C">📝 註冊帳號</h2>
-        <label>Email</label>
-        <input type="email" id="email" placeholder="user@example.com" required>
-        <label>Nick Name</label>
+        <label>Email (只限 Gmail / Yahoo)</label>
+        <input type="email" id="email" placeholder="user@gmail.com" required>
+        
+        <label>Nick Name (排隊時顯示)</label>
         <input type="text" id="username" placeholder="例如: 寶寶島島主" required>
-        <label>生日日期</label>
+        
+        <label>生日日期 (忘記密碼用)</label>
         <input type="date" id="dob" required>
+
         <label>密碼</label>
-        <input type="password" id="password" required>
+        <span class="tips">需含大寫、小寫、數字、符號，最少8位</span>
+        <input type="password" id="password" placeholder="******" required>
+        
         <label>確認密碼</label>
         <input type="password" id="confirm_password" required>
+        
         <button onclick="register()">註冊</button>
         <div id="msg" style="text-align:center;margin-top:10px;color:red"></div>
         <a href="login.html">已有帳號？登入</a>
     </div>
+
     <script>
-        const API_URL = "https://api.ttctv-105.cc";
+        const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP
+
         async function register() {
             const email = document.getElementById('email').value;
             const username = document.getElementById('username').value;
@@ -32,8 +40,22 @@
             const password = document.getElementById('password').value;
             const confirm = document.getElementById('confirm_password').value;
             const msg = document.getElementById('msg');
+            
             if(!username || !dob || !password) { msg.innerText = "請填寫所有資料"; return; }
             if(password !== confirm) { msg.innerText = "兩次密碼不符"; return; }
+
+            // Email 檢查
+            const emailRegex = /@(gmail\.com|yahoo\.)/i;
+            if (!emailRegex.test(email)) {
+                msg.innerText = "Email 只限 Gmail 或 Yahoo"; return;
+            }
+
+            // 密碼檢查
+            const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+            if (!pwdRegex.test(password)) {
+                msg.innerText = "密碼需含：大寫、小寫、數字及符號 (最少8位)"; return;
+            }
+
             msg.innerText = "處理中...";
             try {
                 const res = await fetch(`${API_URL}/register`, {
@@ -42,7 +64,8 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    alert("註冊成功！請登入"); window.location.href = "login.html";
+                    alert("註冊成功！請登入");
+                    window.location.href = "login.html";
                 } else { msg.innerText = data.message; }
             } catch (e) { msg.innerText = "連線失敗"; }
         }
