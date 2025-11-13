@@ -24,7 +24,7 @@
 </head>
 <body>
     <div class="container">
-        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold">← 返列表</a>
+        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold">← 返回列表</a>
         <div id="info" class="section" style="text-align:center">載入中...</div>
         
         <div class="section" style="border-color:#73a0c0">
@@ -102,7 +102,7 @@
             const isFull = currentOnIsland >= maxVisitors;
             statusBar.innerHTML = `島上人數: ${currentOnIsland} / ${maxVisitors} ${isFull ? '<span style="color:red">(已滿)</span>' : '<span style="color:green">(有名額)</span>'}`;
 
-            if(queue.length === 0) list.innerHTML = "<li style='justify-content:center;color:#999'>暫時冇人排隊</li>";
+            if(queue.length === 0) list.innerHTML = "<li style='justify-content:center;color:#999'>暫時無人排隊</li>";
 
             queue.forEach((q, idx) => {
                 let statusHtml = "";
@@ -111,7 +111,7 @@
                     const diff = endTime - serverNow;
                     if(diff > 0) {
                         const m = Math.floor(diff/60000); const s = Math.floor((diff%60000)/1000);
-                        statusHtml = `<span class="play">🏝️ 玩樂中 (${m}分${s}秒)</span>`;
+                        statusHtml = `<span class="play">🏝️ 遊玩中 (剩餘 ${m}分${s}秒)</span>`;
                     } else statusHtml = `<span style="color:red">時間到</span>`;
                 } else if (q.status === 'pending_entry') {
                     const endTime = new Date(q.pending_start_time).getTime() + (30 * 1000);
@@ -123,20 +123,20 @@
             });
 
             if(!user) action.innerHTML = `<a href="login.html" class="btn blue" style="text-decoration:none">請先登入</a>`;
-            else if(hostEmail === user.email) action.innerHTML = `<p>你係島主。</p>`;
+            else if(hostEmail === user.email) action.innerHTML = `<p>您是島主。</p>`;
             else if(!myStatus) action.innerHTML = `<button onclick="api('join')" class="btn blue">➕ 加入排隊</button>`;
-            else if(myStatus === 'waiting') action.innerHTML = `<p>排隊中... 請等候通知</p><button onclick="api('leave')" class="btn red">❌ 唔排了</button>`;
+            else if(myStatus === 'waiting') action.innerHTML = `<p>排隊中... 請等候通知</p><button onclick="api('leave')" class="btn red">❌ 取消排隊</button>`;
             else if(myStatus === 'pending_entry') {
                 const endTime = new Date(myData.pending_start_time).getTime() + (30 * 1000);
                 const diff = Math.floor((endTime - serverNow) / 1000);
-                action.innerHTML = `<h3 style="color:#d35400">🎉 輪到你了！</h3><p style="font-weight:bold;color:red">請於 ${diff>0?diff:0} 秒內確認，否則重排。</p><button onclick="api('enter')" class="btn green">✈️ 我已起飛</button><button onclick="api('leave')" class="btn red">❌ 放棄</button>`;
+                action.innerHTML = `<h3 style="color:#d35400">🎉 輪到您了！</h3><p style="font-weight:bold;color:red">請於 ${diff>0?diff:0} 秒內確認，否則重新排隊。</p><button onclick="api('enter')" class="btn green">✈️ 我已起飛</button><button onclick="api('leave')" class="btn red">❌ 放棄</button>`;
             } else if(myStatus === 'on_island') action.innerHTML = `<h3 style="color:#c0392b">計時中！請於 10 分鐘內離開。</h3><button onclick="api('leave')" class="btn red">👋 我已離開</button>`;
         }
 
         function renderComments(comments) {
             const chatList = document.getElementById('chat-list');
             let html = "";
-            if(!comments || comments.length === 0) html = "<div style='color:#999;text-align:center'>暫時未有留言</div>";
+            if(!comments || comments.length === 0) html = "<div style='color:#999;text-align:center'>暫無留言</div>";
             else comments.forEach(c => {
                 const time = new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 const style = c.user_email === hostEmail ? "color:#d35400" : "";
