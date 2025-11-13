@@ -9,17 +9,17 @@
 <body>
     <div class="box">
         <h2 style="text-align:center;color:#4A7A5C">📝 註冊帳號</h2>
-        <label>Email (只限 Gmail / Yahoo)</label>
+        <label>Email (僅限 Gmail / Yahoo)</label>
         <input type="email" id="email" placeholder="user@gmail.com" required>
         
-        <label>Nick Name (排隊時顯示)</label>
-        <input type="text" id="username" placeholder="例如: 寶寶島島主" required>
+        <label>暱稱 (排隊時顯示)</label>
+        <input type="text" id="username" placeholder="例如：寶寶島島主" required>
         
-        <label>生日日期 (忘記密碼用)</label>
+        <label>生日日期 (用於找回密碼)</label>
         <input type="date" id="dob" required>
 
         <label>密碼</label>
-        <span class="tips">需含大寫、小寫、數字、符號，最少8位</span>
+        <span class="tips">需包含大寫、小寫、數字及符號，至少 8 位</span>
         <input type="password" id="password" placeholder="******" required>
         
         <label>確認密碼</label>
@@ -42,18 +42,16 @@
             const msg = document.getElementById('msg');
             
             if(!username || !dob || !password) { msg.innerText = "請填寫所有資料"; return; }
-            if(password !== confirm) { msg.innerText = "兩次密碼不符"; return; }
+            if(password !== confirm) { msg.innerText = "兩次輸入的密碼不一致"; return; }
 
-            // Email 檢查
             const emailRegex = /@(gmail\.com|yahoo\.)/i;
             if (!emailRegex.test(email)) {
-                msg.innerText = "Email 只限 Gmail 或 Yahoo"; return;
+                msg.innerText = "僅限使用 Gmail 或 Yahoo Email"; return;
             }
 
-            // 密碼檢查
             const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
             if (!pwdRegex.test(password)) {
-                msg.innerText = "密碼需含：大寫、小寫、數字及符號 (最少8位)"; return;
+                msg.innerText = "密碼需包含：大寫、小寫、數字及符號 (至少 8 位)"; return;
             }
 
             msg.innerText = "處理中...";
