@@ -56,7 +56,7 @@
                 json.data.forEach(island => {
                     const div = document.createElement('div');
                     div.className = 'card';
-                    div.innerHTML = `<div class="people-count">${t('queue_count', island.queue_count)}</div><div class="card-h"><span>${island.island_name}</span></div><div>${t('card_host')} ${island.user_email.split('@')[0]}</div><div>${t('card_limit')} ${island.max_visitors}</div><div>${t('card_note')} ${island.note||'-'}</div><a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">${t('btn_go')}</a>`;
+                    div.innerHTML = `<div class="people-count">${t('queue_count', island.queue_count)}</div><div class="card-h"><span>${island.island_name}</span></div><div>${t('card_host')} ${island.username.split('@')[0]}</div><div>${t('card_limit')} ${island.max_visitors}</div><div>${t('card_note')} ${island.note||'-'}</div><a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">${t('btn_go')}</a>`;
                     list.appendChild(div);
                 });
             } catch(e) { list.innerHTML = `<p style='text-align:center;color:red'>${t('ERR_CONNECT')}</p>`; }
