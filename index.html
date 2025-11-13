@@ -26,15 +26,12 @@
         <select id="lang-selector"><option value="hk">繁體中文</option><option value="en">English</option><option value="jp">日本語</option></select>
         <div id="user-bar" style="font-weight:bold; color:#73a0c0; margin-top:10px;"></div>
     </header>
-    
     <nav>
         <a href="host-page.html" class="button" data-i18n="nav_host">我的島嶼 (Host)</a>
         <button onclick="loadIslands()" class="button refresh" data-i18n="nav_refresh">F5 更新列表</button>
         <button id="auth-btn" class="button" data-i18n="status_loading">載入中...</button>
     </nav>
-    
     <main id="list"></main>
-
     <script>
         const API_URL = "https://api.ttctv-105.cc";
         const user = JSON.parse(localStorage.getItem('acnh_user'));
@@ -70,15 +67,19 @@
                 json.data.forEach(island => {
                     const queueCount = island.queue_count || 0;
                     const max = island.max_visitors || 4;
-                    // [修改] 使用 island.username，如果沒有就用 Email 前綴
-                    const hostName = island.username || island.user_email.split('@')[0];
                     
+                    // [關鍵修正] 優先讀取 username，讀不到才用 email
+                    let displayName = island.username;
+                    if (!displayName || displayName === "null") {
+                        displayName = island.user_email.split('@')[0];
+                    }
+
                     const div = document.createElement('div');
                     div.className = 'card';
                     div.innerHTML = `
                         <div class="people-count">${t('queue_count', queueCount)}</div>
                         <div class="card-h"><span>${island.island_name}</span></div>
-                        <div>${t('card_host')} <strong>${hostName}</strong></div>
+                        <div>${t('card_host')} <strong>${displayName}</strong></div>
                         <div>${t('card_limit')} ${max}</div>
                         <div>${t('card_note')} ${island.note || '-'}</div>
                         <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">${t('btn_go')}</a>
