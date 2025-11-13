@@ -6,6 +6,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <script src="lang.js"></script>
     <style>
+        /* ... CSS 保持不變 ... */
         body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px;margin:0}
         .container{max-width:800px;margin:0 auto}
         .section{background:white;padding:20px;border-radius:15px;border:2px solid #96C8A4;margin-bottom:20px}
@@ -26,7 +27,9 @@
     <div class="container">
         <div style="text-align:right"><select id="lang-selector"></select></div>
         <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold" data-i18n="link_back_list"></a>
+        
         <div id="info" class="section" style="text-align:center" data-i18n="status_loading"></div>
+        
         <div class="section" style="border-color:#73a0c0">
             <h3 data-i18n="queue_list_title"></h3>
             <div id="status-bar" style="margin-bottom:10px;font-weight:bold"></div>
@@ -36,12 +39,14 @@
                 <h4 style="margin:0 0 10px 0;" data-i18n="lbl_notice"></h4><div id="notice-content"></div>
             </div>
         </div>
+
         <div class="section" style="border-color:#f1c40f">
             <h3 data-i18n="board_title"></h3>
             <div id="chat-list" class="chat-box"></div>
             <div class="input-group"><input id="chat-input" data-i18n-ph="ph_chat"><button onclick="sendComment()" class="btn blue" data-i18n="btn_send"></button></div>
         </div>
     </div>
+
     <script>
         const API_URL = "https://api.ttctv-105.cc";
         const hostEmail = new URLSearchParams(window.location.search).get('host');
@@ -57,7 +62,7 @@
             } catch(e) {}
         }
         function renderInfo(island) {
-            // [修改] 優先使用 island.username
+            // [直接讀取]
             const hostName = island.username || island.user_email.split('@')[0];
             document.getElementById('info').innerHTML = `<h2>🌴 ${island.island_name}</h2><div style="font-size:2rem;color:#73a0c0;font-weight:bold;margin:10px">${island.dodo_code}</div><p>${t('card_host')} <strong>${hostName}</strong> (${t('card_limit')} ${island.max_visitors})</p><p>${t('card_note')} ${island.note||'-'}</p>`;
             if(island.notice) { document.getElementById('notice-box').style.display="block"; document.getElementById('notice-content').innerText=island.notice; }
