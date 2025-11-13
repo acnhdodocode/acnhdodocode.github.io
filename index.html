@@ -19,55 +19,31 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>🍃 動森島嶼中心</h1>
-        <div id="user-bar" style="font-weight:bold; color:#73a0c0; margin-top:10px; height: 20px;"></div>
-    </header>
-    
+    <header><h1>🍃 動森島嶼中心</h1><div id="user-bar" style="font-weight:bold;color:#73a0c0;margin-top:10px"></div></header>
     <nav>
         <a href="host-page.html" class="button">我嘅島嶼 (Host)</a>
         <button onclick="loadIslands()" class="button refresh">F5 列表</button>
         <button id="auth-btn" class="button">載入中...</button>
     </nav>
-    
     <main id="list"></main>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc"; // 請確認你的 IP
-        
-        // 1. 獲取 DOM 元素
+        const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP
         const user = JSON.parse(localStorage.getItem('acnh_user'));
         const userBar = document.getElementById('user-bar');
         const authBtn = document.getElementById('auth-btn');
 
-        // 2. 判斷登入狀態並改變 UI
         if (user) {
-            // --- 已登入 ---
             userBar.innerText = `Hi, ${user.username}`;
-            
             authBtn.innerText = "登出";
-            authBtn.style.backgroundColor = "#d9534f"; // 紅色
-            authBtn.onclick = logout; // 綁定登出函數
+            authBtn.style.backgroundColor = "#d9534f";
+            authBtn.onclick = () => { if(confirm("確定登出？")) { localStorage.removeItem('acnh_user'); window.location.reload(); }};
         } else {
-            // --- 未登入 ---
-            userBar.innerText = ""; // 不顯示名字
-            
             authBtn.innerText = "登入";
-            authBtn.style.backgroundColor = "#73a0c0"; // 藍色
-            authBtn.onclick = function() {
-                window.location.href = "login.html"; // 跳轉去登入頁
-            };
+            authBtn.style.backgroundColor = "#73a0c0";
+            authBtn.onclick = () => { window.location.href = "login.html"; };
         }
 
-        // 3. 登出功能
-        function logout() { 
-            if(confirm("確定要登出嗎？")) {
-                localStorage.removeItem('acnh_user'); 
-                window.location.reload(); // 刷新頁面，按鈕會變回「登入」
-            }
-        }
-
-        // 4. 載入島嶼列表
         async function loadIslands() {
             const list = document.getElementById('list');
             list.innerHTML = "<p style='text-align:center'>載入中...</p>";
@@ -76,15 +52,11 @@
                 const json = await res.json();
                 list.innerHTML = "";
                 
-                if(!json.data || json.data.length === 0) { 
-                    list.innerHTML = "<p style='text-align:center; width:100%; color:#999;'>暫無開放島嶼，不如你去開島？</p>"; 
-                    return; 
-                }
+                if(!json.data || json.data.length === 0) { list.innerHTML = "<p style='text-align:center;width:100%;color:#999;'>暫無開放島嶼</p>"; return; }
 
                 json.data.forEach(island => {
                     const queueCount = island.queue_count || 0;
                     const max = island.max_visitors || 4;
-                    
                     const div = document.createElement('div');
                     div.className = 'card';
                     div.innerHTML = `
@@ -97,12 +69,8 @@
                     `;
                     list.appendChild(div);
                 });
-            } catch(e) { 
-                list.innerHTML = `<p style='text-align:center; color:red'>連線失敗 (${e.message})<br>請確認 Server (Port 9000) 已啟動</p>`; 
-            }
+            } catch(e) { list.innerHTML = "<p style='text-align:center;color:red'>連線失敗</p>"; }
         }
-        
-        // 一入頁面就載入一次
         loadIslands();
     </script>
 </body>
