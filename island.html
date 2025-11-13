@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Details</title>
+    <title>排隊詳情</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <script src="lang.js"></script>
     <style>
@@ -57,7 +57,8 @@
             } catch(e) {}
         }
         function renderInfo(island) {
-            document.getElementById('info').innerHTML = `<h2>🌴 ${island.island_name}</h2><div style="font-size:2rem;color:#73a0c0;font-weight:bold;margin:10px">${island.dodo_code}</div><p>${t('card_host')} ${island.user_email} (${t('card_limit')} ${island.max_visitors})</p><p>${t('card_note')} ${island.note||'-'}</p>`;
+            // [修改] 顯示 host_name
+            document.getElementById('info').innerHTML = `<h2>🌴 ${island.island_name}</h2><div style="font-size:2rem;color:#73a0c0;font-weight:bold;margin:10px">${island.dodo_code}</div><p>${t('card_host')} <strong>${island.host_name}</strong> (${t('card_limit')} ${island.max_visitors})</p><p>${t('card_note')} ${island.note||'-'}</p>`;
             if(island.notice) { document.getElementById('notice-box').style.display="block"; document.getElementById('notice-content').innerText=island.notice; }
         }
         function renderQueue(queue, serverTimeStr, max) {
