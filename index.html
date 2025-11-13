@@ -28,14 +28,9 @@
     <main id="list"></main>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc";
+        const API_URL = "https://api.ttctv-105.cc"; // *** 請填入正確網址 ***
         const user = JSON.parse(localStorage.getItem('acnh_user'));
-        const userBar = document.getElementById('user-bar');
-
-        // [修改] 簡單顯示歡迎訊息，不再檢查驗證
-        if(user) {
-            userBar.innerHTML = `Hi, ${user.username}`;
-        }
+        if(user) document.getElementById('user-bar').innerText = `Hi, ${user.username}`;
 
         function logout() { localStorage.removeItem('acnh_user'); window.location.href="login.html"; }
 
