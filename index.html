@@ -1,94 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>動森島嶼中心</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <script src="lang.js"></script>
     <style>
         :root { --ac-green: #96C8A4; --ac-blue: #73a0c0; --ac-cream: #F5F5E8; --ac-brown: #8B5A2B; --ac-white: #ffffff; }
         body { font-family: 'Nunito', sans-serif; background-color: var(--ac-cream); color: var(--ac-brown); margin: 0; padding: 20px; }
         header, nav { text-align: center; margin-bottom: 30px; }
-        .button { display: inline-block; padding: 10px 20px; font-weight: bold; text-decoration: none; color: white; background-color: var(--ac-blue); border-radius: 20px; border: none; cursor: pointer; margin: 0 5px; font-size: 1rem; }
+        .button { display: inline-block; padding: 10px 20px; font-weight: bold; text-decoration: none; color: white; background-color: var(--ac-blue); border-radius: 20px; border: none; cursor: pointer; margin: 0 5px; }
         .button.refresh { background-color: var(--ac-green); }
         #list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
         .card { background: var(--ac-white); border-radius: 15px; padding: 20px; border: 2px solid var(--ac-green); box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
         .card-h { font-size: 1.5rem; font-weight: bold; color: #4A7A5C; margin-bottom: 10px; }
         .btn-go { display:block; text-align:center; background:#73a0c0; color:white; padding:10px; text-decoration:none; border-radius:8px; margin-top:15px; font-weight:bold; }
         .people-count { position: absolute; top: 20px; right: 20px; background: #e67e22; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-        #lang-selector { padding: 5px; border-radius: 5px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <header>
-        <h1 data-i18n="title">動森島嶼中心</h1>
-        <select id="lang-selector"><option value="hk">繁體中文</option><option value="en">English</option><option value="jp">日本語</option></select>
-        <div id="user-bar" style="font-weight:bold; color:#73a0c0; margin-top:10px;"></div>
-    </header>
-    
+    <header><h1>🍃 動森島嶼中心</h1><div id="user-bar"></div></header>
     <nav>
-        <a href="host-page.html" class="button" data-i18n="nav_host">我的島嶼 (Host)</a>
-        <button onclick="loadIslands()" class="button refresh" data-i18n="nav_refresh">F5 更新列表</button>
-        <button id="auth-btn" class="button" data-i18n="status_loading">載入中...</button>
+        <a href="host-page.html" class="button">我嘅島嶼 (Host)</a>
+        <button onclick="loadIslands()" class="button refresh">F5 列表</button>
+        <button onclick="logout()" class="button" style="background:#d9534f">登出</button>
     </nav>
-    
     <main id="list"></main>
 
     <script>
         const API_URL = "https://api.ttctv-105.cc";
         const user = JSON.parse(localStorage.getItem('acnh_user'));
         const userBar = document.getElementById('user-bar');
-        const authBtn = document.getElementById('auth-btn');
 
-        if (user) {
-            userBar.innerText = `${user.username}`;
-            authBtn.setAttribute('data-i18n', 'nav_logout');
-            authBtn.innerText = t('nav_logout'); 
-            authBtn.style.backgroundColor = "#d9534f";
-            authBtn.onclick = () => { if(confirm(t('nav_logout')+"?")) { localStorage.removeItem('acnh_user'); window.location.reload(); }};
-        } else {
-            authBtn.setAttribute('data-i18n', 'nav_login');
-            authBtn.innerText = t('nav_login');
-            authBtn.style.backgroundColor = "#73a0c0";
-            authBtn.onclick = () => { window.location.href = "login.html"; };
+        // [修改] 簡單顯示歡迎訊息，不再檢查驗證
+        if(user) {
+            userBar.innerHTML = `Hi, ${user.username}`;
         }
+
+        function logout() { localStorage.removeItem('acnh_user'); window.location.href="login.html"; }
 
         async function loadIslands() {
             const list = document.getElementById('list');
-            list.innerHTML = `<p style='text-align:center'>${t('status_loading')}</p>`;
+            list.innerHTML = "載入中...";
             try {
                 const res = await fetch(`${API_URL}/islands`);
                 const json = await res.json();
                 list.innerHTML = "";
-                
-                if(!json.data || json.data.length === 0) { 
-                    list.innerHTML = `<p style='text-align:center; width:100%; color:#999;'>${t('status_no_island')}</p>`; 
-                    return; 
-                }
+                if(!json.data || json.data.length===0) { list.innerHTML="暫無開放島嶼"; return; }
 
                 json.data.forEach(island => {
                     const queueCount = island.queue_count || 0;
                     const max = island.max_visitors || 4;
                     
-                    // [直接讀取] 因為現在資料庫 islands 表有 username 了
-                    const hostName = island.username || island.user_email.split('@')[0]; // 雙重保險
-
                     const div = document.createElement('div');
                     div.className = 'card';
                     div.innerHTML = `
-                        <div class="people-count">${t('queue_count', queueCount)}</div>
+                        <div class="people-count">👫 ${queueCount} 人排隊中</div>
                         <div class="card-h"><span>${island.island_name}</span></div>
-                        <div>${t('card_host')} <strong>${hostName}</strong></div>
-                        <div>${t('card_limit')} ${max}</div>
-                        <div>${t('card_note')} ${island.note || '-'}</div>
-                        <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">${t('btn_go')}</a>
+                        <div>Host: ${island.user_email.split('@')[0]}</div>
+                        <div>限制: ${max} 人</div>
+                        <div>備註: ${island.note || '-'}</div>
+                        <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">👉 進入排隊 / 詳情</a>
                     `;
                     list.appendChild(div);
                 });
-            } catch(e) { 
-                list.innerHTML = `<p style='text-align:center; color:red'>${t('ERR_CONNECT')}</p>`; 
-            }
+            } catch(e) { list.innerHTML = "連線失敗"; }
         }
         loadIslands();
     </script>
