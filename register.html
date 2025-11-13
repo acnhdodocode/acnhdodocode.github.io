@@ -11,9 +11,9 @@
         <h2 style="text-align:center;color:#4A7A5C">📝 註冊帳號</h2>
         <label>Email</label>
         <input type="email" id="email" placeholder="user@example.com" required>
-        <label>Nick Name</label>
+        <label>Nick Name (排隊時顯示)</label>
         <input type="text" id="username" placeholder="例如: 寶寶島島主" required>
-        <label>生日日期 (忘記密碼用)</label>
+        <label>生日日期 (重要：忘記密碼用)</label>
         <input type="date" id="dob" required>
         <label>密碼</label>
         <input type="password" id="password" required>
@@ -44,7 +44,7 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    alert("註冊成功！請直接登入。");
+                    alert("註冊成功！請登入。");
                     window.location.href = "login.html";
                 } else { msg.innerText = data.message; }
             } catch (e) { msg.innerText = "連線失敗"; }
