@@ -4,14 +4,7 @@
     <meta charset="UTF-8">
     <title>管理我嘅島</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px}
-        .box{max-width:600px;margin:0 auto;background:white;padding:30px;border-radius:15px;border:2px solid #96C8A4}
-        input,textarea,select{width:100%;padding:12px;margin:5px 0 15px 0;border:2px solid #ddd;border-radius:10px;box-sizing:border-box;font-family:inherit;font-size:1rem}
-        label{font-weight:bold;color:#4A7A5C}
-        .btn{width:100%;padding:15px;border:none;border-radius:10px;cursor:pointer;color:white;font-size:1.2rem}
-        .green{background:#96C8A4} .red{background:#d9534f} .blue{background:#73a0c0}
-    </style>
+    <style>body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px}.box{max-width:600px;margin:0 auto;background:white;padding:30px;border-radius:15px;border:2px solid #96C8A4}input,textarea,select{width:100%;padding:12px;margin:5px 0 15px 0;border:2px solid #ddd;border-radius:10px;box-sizing:border-box;font-family:inherit;font-size:1rem}label{font-weight:bold;color:#4A7A5C}.btn{width:100%;padding:15px;border:none;border-radius:10px;cursor:pointer;color:white;font-size:1.2rem}.green{background:#96C8A4} .red{background:#d9534f} .blue{background:#73a0c0}</style>
 </head>
 <body>
     <div style="text-align:center;margin-bottom:20px">
@@ -21,7 +14,7 @@
     <div class="box" id="content">檢查中...</div>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc";
+        const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP
         const user = JSON.parse(localStorage.getItem('acnh_user'));
         if(!user) window.location.href="login.html";
 
@@ -43,17 +36,11 @@
                 <input id="dodo" placeholder="5位 Code" maxlength="5">
                 <label>島名</label>
                 <input id="name" value="${user.username}的島">
-                <label>同時上島人數限制</label>
+                <label>限制人數</label>
                 <select id="maxUsers">
-                    <option value="2">2人</option>
-                    <option value="3">3人</option>
-                    <option value="4" selected>4人</option>
-                    <option value="5">5人</option>
-                    <option value="6">6人</option>
-                    <option value="7">7人</option>
-                    <option value="8">8人</option>
+                    <option value="2">2人</option><option value="3">3人</option><option value="4" selected>4人</option><option value="5">5人</option><option value="6">6人</option><option value="7">7人</option><option value="8">8人</option>
                 </select>
-                <label style="color:#e67e22">⚠️ 進島注意事項 (顯示在排隊區)</label>
+                <label style="color:#e67e22">⚠️ 注意事項 (顯示在排隊區)</label>
                 <textarea id="notice" placeholder="例如: 只限機場離開、禁穿潛水衣..."></textarea>
                 <label>備註 (顯示在列表)</label>
                 <textarea id="note" placeholder="例如: 賣大頭菜 500！"></textarea>
@@ -74,12 +61,9 @@
 
         async function host() {
             const payload = {
-                email: user.email, 
-                islandName: document.getElementById('name').value,
-                dodoCode: document.getElementById('dodo').value, 
-                note: document.getElementById('note').value,
-                maxVisitors: document.getElementById('maxUsers').value,
-                notice: document.getElementById('notice').value
+                email: user.email, islandName: document.getElementById('name').value,
+                dodoCode: document.getElementById('dodo').value, note: document.getElementById('note').value,
+                maxVisitors: document.getElementById('maxUsers').value, notice: document.getElementById('notice').value
             };
             await fetch(`${API_URL}/host`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
             checkStatus();
