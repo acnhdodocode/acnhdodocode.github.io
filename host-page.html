@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>管理我的島嶼</title>
+    <title>管理島嶼</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script src="lang.js"></script>
     <style>body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px}.box{max-width:600px;margin:0 auto;background:white;padding:30px;border-radius:15px;border:2px solid #96C8A4}input,textarea,select{width:100%;padding:12px;margin:5px 0 15px 0;border:2px solid #ddd;border-radius:10px;box-sizing:border-box;font-family:inherit;font-size:1rem}label{font-weight:bold;color:#4A7A5C}.btn{width:100%;padding:15px;border:none;border-radius:10px;cursor:pointer;color:white;font-size:1.2rem}.green{background:#96C8A4} .red{background:#d9534f} .blue{background:#73a0c0}</style>
 </head>
 <body>
     <div style="text-align:center;margin-bottom:20px">
-        <h1>✈️ 管理我的島嶼</h1>
-        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold">← 返回首頁</a>
+        <h1 data-i18n="host_title">✈️ 管理我的島嶼</h1>
+        <div style="margin-bottom:10px"><select id="lang-selector"></select></div>
+        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold" data-i18n="link_home">← 返回首頁</a>
     </div>
-    <div class="box" id="content">檢查中...</div>
+    <div class="box" id="content" data-i18n="status_loading">檢查中...</div>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc"; // 請確認 IP
+        const API_URL = "https://api.ttctv-105.cc";
         const user = JSON.parse(localStorage.getItem('acnh_user'));
         if(!user) window.location.href="login.html";
 
@@ -26,36 +28,33 @@
                 const res = await fetch(`${API_URL}/my-status?email=${encodeURIComponent(user.email)}`);
                 const json = await res.json();
                 if(json.data) showClose(json.data); else showHost();
-            } catch(e) { content.innerHTML = "連線失敗"; }
+            } catch(e) { content.innerHTML = t('ERR_CONNECT'); }
         }
 
         function showHost() {
             content.innerHTML = `
-                <h3>登記開島</h3>
-                <label>Dodo Code™</label>
-                <input id="dodo" placeholder="5位 Code" maxlength="5">
-                <label>島嶼名稱</label>
-                <input id="name" value="${user.username}的島">
-                <label>同時上島人數限制</label>
-                <select id="maxUsers">
-                    <option value="2">2人</option><option value="3">3人</option><option value="4" selected>4人</option><option value="5">5人</option><option value="6">6人</option><option value="7">7人</option><option value="8">8人</option>
-                </select>
-                <label style="color:#e67e22">⚠️ 進島注意事項 (顯示於排隊區)</label>
-                <textarea id="notice" placeholder="例如：僅限機場離開、禁止穿潛水衣..."></textarea>
-                <label>備註 (顯示於列表)</label>
-                <textarea id="note" placeholder="例如：賣大頭菜 500！"></textarea>
-                <button onclick="host()" class="btn green">確認開島</button>
+                <h3 data-i18n="btn_open">${t('btn_open')}</h3>
+                <label data-i18n="lbl_dodo">${t('lbl_dodo')}</label>
+                <input id="dodo" placeholder="5 Code" maxlength="5">
+                <label data-i18n="lbl_island_name">${t('lbl_island_name')}</label>
+                <input id="name" value="${user.username}">
+                <label data-i18n="lbl_limit">${t('lbl_limit')}</label>
+                <select id="maxUsers"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+                <label style="color:#e67e22" data-i18n="lbl_notice">${t('lbl_notice')}</label>
+                <textarea id="notice" placeholder="${t('ph_notice')}"></textarea>
+                <label data-i18n="lbl_note">${t('lbl_note')}</label>
+                <textarea id="note" placeholder="${t('ph_note')}"></textarea>
+                <button onclick="host()" class="btn green" data-i18n="btn_open">${t('btn_open')}</button>
             `;
         }
 
         function showClose(data) {
             content.innerHTML = `
-                <h3 style="text-align:center;color:#4A7A5C">開放中...</h3>
-                <p>島嶼名稱：${data.island_name}</p>
-                <p>限制人數：${data.max_visitors} 人</p>
+                <h3 style="text-align:center;color:#4A7A5C" data-i18n="status_open">${t('status_open')}</h3>
+                <p>${t('lbl_island_name')}: ${data.island_name}</p>
                 <p style="font-size:1.5rem;color:#73a0c0;font-weight:bold;text-align:center">${data.dodo_code}</p>
-                <a href="island.html?host=${encodeURIComponent(user.email)}" class="btn blue" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-bottom:10px">👁️ 查看排隊狀況</a>
-                <button onclick="closeIsland()" class="btn red">⚠️ 立即關島</button>
+                <a href="island.html?host=${encodeURIComponent(user.email)}" class="btn blue" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-bottom:10px">${t('btn_view_queue')}</a>
+                <button onclick="closeIsland()" class="btn red">${t('btn_close')}</button>
             `;
         }
 
@@ -65,12 +64,14 @@
                 dodoCode: document.getElementById('dodo').value, note: document.getElementById('note').value,
                 maxVisitors: document.getElementById('maxUsers').value, notice: document.getElementById('notice').value
             };
-            await fetch(`${API_URL}/host`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+            const res = await fetch(`${API_URL}/host`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+            const json = await res.json();
+            if(json.status === 'error') alert(t(json.message));
             checkStatus();
         }
 
         async function closeIsland() {
-            if(!confirm("確定要關島嗎？")) return;
+            if(!confirm(t('btn_close') + "?")) return;
             await fetch(`${API_URL}/close`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email: user.email}) });
             checkStatus();
         }
