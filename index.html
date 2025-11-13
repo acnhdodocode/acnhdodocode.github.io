@@ -73,7 +73,8 @@
                     div.innerHTML = `
                         <div class="people-count">${t('queue_count', queueCount)}</div>
                         <div class="card-h"><span>${island.island_name}</span></div>
-                        <div>${t('card_host')} <strong>${island.host_name}</strong></div>
+                        // 如果 host_name 係 undefined，就顯示 email 前綴，再唔係就顯示 "Unknown"
+<div>${t('card_host')} <strong>${island.host_name || island.user_email.split('@')[0]}</strong></div>
                         <div>${t('card_limit')} ${max}</div>
                         <div>${t('card_note')} ${island.note || '-'}</div>
                         <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">${t('btn_go')}</a>
