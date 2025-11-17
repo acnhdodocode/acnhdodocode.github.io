@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>排隊詳情 (Queue Detail)</title>
+    <title>排隊詳情v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px;margin:0}
@@ -15,43 +15,52 @@
         .wait{color:#e67e22;font-weight:bold} .play{color:#27ae60;font-weight:bold}
         .pending{color:#d35400;font-weight:bold;animation: blink 1s infinite;}
         @keyframes blink { 50% { opacity: 0.5; } }
+        
+        /* 留言板 CSS */
         .chat-box { max-height: 300px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
         .msg-item { margin-bottom: 8px; padding: 5px; border-bottom: 1px dashed #eee; }
         .msg-user { font-weight: bold; color: #4A7A5C; font-size: 0.9rem; }
         .input-group { display: flex; gap: 10px; }
         .input-group input { flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px; }
-        .dodo-highlight { font-size: 2.5rem; color: #27ae60; font-weight: 900; background: #e8f8f5; padding: 10px; border-radius: 10px; border: 2px dashed #27ae60; margin: 10px 0; letter-spacing: 5px; }
-        .lang-switcher{text-align:center;margin-bottom:20px;font-size:0.9rem}.lang-switcher a{color:var(--ac-blue);text-decoration:none;padding:0 5px}
+
+        /* [新] Dodo Code 顯示樣式 */
+        .dodo-highlight {
+            font-size: 2.5rem; 
+            color: #27ae60; 
+            font-weight: 900; 
+            background: #e8f8f5; 
+            padding: 10px; 
+            border-radius: 10px; 
+            border: 2px dashed #27ae60;
+            margin: 10px 0;
+            letter-spacing: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="lang-switcher">
-          <a href="?lang=zh">中文</a> | 
-          <a href="?lang=en">EN</a> | 
-          <a href="?lang=ja">日本語</a>
-        </div>
-        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold" data-i18n="home_link">← 返列表</a>
+        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold">← 返列表</a>
         
-        <div id="info" class="section" style="text-align:center" data-i18n="loading">載入中...</div>
+        <div id="info" class="section" style="text-align:center">載入中...</div>
         
         <div class="section" style="border-color:#73a0c0">
-            <h3 data-i18n="queue_title">👫 排隊列表 (每5秒更新)</h3>
+            <h3>👫 排隊列表 (每5秒更新)</h3>
             <div id="status-bar" style="margin-bottom:10px;font-weight:bold"></div>
             <ul id="list"></ul>
             <div id="action" style="text-align:center;padding:20px;background:#ecf0f1;border-radius:10px;margin-top:20px"></div>
+            
             <div id="notice-box" style="display:none;margin-top:20px;padding:15px;background:#fff3cd;border:1px solid #ffeeba;color:#856404;border-radius:10px">
-                <h4 style="margin:0 0 10px 0" data-i18n="notice_title">⚠️ 島主注意事項</h4>
+                <h4 style="margin:0 0 10px 0">⚠️ 島主注意事項</h4>
                 <div id="notice-content" style="white-space:pre-line"></div>
             </div>
         </div>
 
         <div class="section" style="border-color:#f1c40f">
-            <h3 data-i18n="chat_title">💬 留言板</h3>
+            <h3>💬 留言板</h3>
             <div id="chat-list" class="chat-box"></div>
             <div class="input-group">
-                <input type="text" id="chat-input" data-i18n-placeholder="chat_placeholder" placeholder="請輸入留言...">
-                <button onclick="sendComment()" class="btn blue" style="margin:0" data-i18n="chat_send">發送</button>
+                <input type="text" id="chat-input" placeholder="請輸入留言...">
+                <button onclick="sendComment()" class="btn blue" style="margin:0">發送</button>
             </div>
         </div>
     </div>
@@ -61,75 +70,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const hostEmail = urlParams.get('host');
         const user = JSON.parse(localStorage.getItem('acnh_user'));
-
-        const translations = {
-            'zh': {
-                'home_link': '← 返列表', 'loading': '載入中...', 'queue_title': '👫 排隊列表 (每5秒更新)',
-                'notice_title': '⚠️ 島主注意事項', 'chat_title': '💬 留言板', 'chat_placeholder': '請輸入留言...', 'chat_send': '發送',
-                'status_visitors': '島上人數', 'status_full': '(已滿)', 'status_avail': '(有名額)', 'no_queue': '暫時冇人排隊',
-                'status_playing': '🏝️ 玩樂中', 'status_timeup': '時間到', 'status_entering': '🔔 請入島！剩餘', 'status_sec': '秒',
-                'status_timeout': '逾時', 'status_waiting': '等待中',
-                'btn_login': '請先登入', 'btn_host': '你係島主，可於此頁回覆留言。', 'btn_join': '➕ 加入排隊',
-                'btn_wait_text': '排隊中... 輪到你時 Code 會自動顯示。', 'btn_leave_q': '❌ 唔排了',
-                'btn_pending_title': '🎉 輪到你了！Code 已顯示！', 'btn_pending_text': '請於 $s 秒內成功起飛並按下確認！',
-                'btn_pending_go': '✈️ 我已成功起飛', 'btn_pending_giveup': '❌ 放棄機會',
-                'btn_onisland_title': '計時中！請於 10 分鐘內離開。', 'btn_onisland_leave': '👋 我已離開島嶼'
-            },
-            'en': {
-                'home_link': '← Back to List', 'loading': 'Loading...', 'queue_title': '👫 Queue List (Updates every 5s)',
-                'notice_title': '⚠️ Host\'s Notice', 'chat_title': '💬 Chat', 'chat_placeholder': 'Enter message...', 'chat_send': 'Send',
-                'status_visitors': 'Visitors on Island', 'status_full': '(Full)', 'status_avail': '(Available)', 'no_queue': 'No one in queue',
-                'status_playing': '🏝️ On Island', 'status_timeup': 'Time\'s Up', 'status_entering': '🔔 Entering! Remaining', 'status_sec': 's',
-                'status_timeout': 'Timeout', 'status_waiting': 'Waiting',
-                'btn_login': 'Please Login', 'btn_host': 'You are the host. You can reply to chat.', 'btn_join': '➕ Join Queue',
-                'btn_wait_text': 'Waiting... Dodo Code will show when it\'s your turn.', 'btn_leave_q': '❌ Leave Queue',
-                'btn_pending_title': '🎉 It\'s Your Turn! Code is visible!', 'btn_pending_text': 'Please depart and confirm within $s seconds!',
-                'btn_pending_go': '✈️ I\'ve Departed', 'btn_pending_giveup': '❌ Give Up',
-                'btn_onisland_title': 'Timer Running! Please leave within 10 mins.', 'btn_onisland_leave': '👋 I\'ve Left Island'
-            },
-            'ja': {
-                'home_link': '← リストに戻る', 'loading': '読み込み中...', 'queue_title': '👫 待機列 (5秒更新)',
-                'notice_title': '⚠️ ホストからの注意事項', 'chat_title': '💬 チャット', 'chat_placeholder': 'メッセージを入力...', 'chat_send': '送信',
-                'status_visitors': '島内の人数', 'status_full': '(満員)', 'status_avail': '(空きあり)', 'no_queue': '待機列はいません',
-                'status_playing': '🏝️ 訪問中', 'status_timeup': '時間切れ', 'status_entering': '🔔 入島どうぞ！残り', 'status_sec': '秒',
-                'status_timeout': '時間超過', 'status_waiting': '待機中',
-                'btn_login': 'ログインしてください', 'btn_host': 'あなたはホストです。チャットに返信できます。', 'btn_join': '➕ 待機列に参加',
-                'btn_wait_text': '待機中... 順番が来たらコードが表示されます。', 'btn_leave_q': '❌ 待機列から離脱',
-                'btn_pending_title': '🎉 あなたの番です！コード表示中！', 'btn_pending_text': '$s 秒以内に飛行機に乗って確認してください！',
-                'btn_pending_go': '✈️ 出発しました', 'btn_pending_giveup': '❌ 辞退する',
-                'btn_onisland_title': 'カウントダウン中！10分以内に退出してください。', 'btn_onisland_leave': '👋 島から出ました'
-            }
-        };
-
-        function getLanguage() {
-            const urlLang = new URLSearchParams(window.location.search).get('lang');
-            if (urlLang && translations[urlLang]) return urlLang;
-            const browserLang = navigator.language.split('-')[0];
-            if (browserLang && translations[browserLang]) return browserLang;
-            return 'zh';
-        }
-        function translatePage(lang) {
-            const langDict = translations[lang] || translations['zh'];
-            document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (langDict[key]) el.innerHTML = langDict[key]; });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.getAttribute('data-i18n-placeholder'); if (langDict[key]) el.placeholder = langDict[key]; });
-            document.querySelectorAll('a').forEach(a => {
-                try {
-                    if (a.href && (a.protocol === window.location.protocol || a.protocol === "file:")) {
-                        const url = new URL(a.href, window.location.href);
-                        if (url.hostname === window.location.hostname || url.protocol === "file:") {
-                            if (a.getAttribute('href') !== '#') {
-                                url.searchParams.set('lang', lang);
-                                a.href = url.href;
-                            }
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            });
-        }
-        
-        const currentLang = getLanguage();
-        const t = translations[currentLang] || translations['zh'];
-        document.addEventListener('DOMContentLoaded', () => translatePage(currentLang));
 
         setInterval(loadData, 5000);
         loadData();
@@ -148,23 +88,24 @@
                 }
                 
                 renderInfo(json.island);
-                renderQueue(json.queue, json.serverTime, json.island);
+                // [修改] 傳入 island 資料以便在 renderQueue 使用 Dodo Code
+                renderQueue(json.queue, json.serverTime, json.island); 
                 renderComments(json.comments);
             } catch(e) { console.log(e); }
         }
 
         function renderInfo(island) {
+            // [修改] 上方顯示邏輯：只有島主睇到真 Code，其他人(包括排到嘅人)都只顯示 "******"
+            // 因為排到嘅人會喺下方操作區睇到
             const isHost = user && user.email === island.user_email;
             const dodoDisplay = isHost ? island.dodo_code : "******";
             const dodoStyle = isHost ? "color:#73a0c0" : "color:#ccc;letter-spacing:normal";
-            const dodoSub = isHost ? "" : `<div style="font-size:0.9rem;color:#999">(輪到你時顯示 / Show when turn)</div>`;
 
             document.getElementById('info').innerHTML = `
                 <h2>🌴 ${island.island_name}</h2>
                 <div style="font-size:2rem;font-weight:bold;margin:10px;letter-spacing:5px;${dodoStyle}">${dodoDisplay}</div>
-                ${dodoSub}
-                <p><b>Host:</b> ${island.user_email} (Max: ${island.max_visitors})</p>
-                <p><b>Note:</b> ${island.note || '-'}</p>
+                <p>Host: ${island.user_email} (限 ${island.max_visitors} 人)</p>
+                <p>備註: ${island.note || '無'}</p>
             `;
 
             if (island.notice) {
@@ -180,7 +121,10 @@
             const action = document.getElementById('action');
             const statusBar = document.getElementById('status-bar');
             list.innerHTML = "";
-            let myStatus = null, myData = null, currentOnIsland = 0;
+            
+            let myStatus = null;
+            let myData = null;
+            let currentOnIsland = 0;
             const serverNow = new Date(serverTimeStr).getTime();
 
             queue.forEach(q => {
@@ -189,49 +133,62 @@
             });
 
             const isFull = currentOnIsland >= island.max_visitors;
-            statusBar.innerHTML = `${t.status_visitors}: ${currentOnIsland} / ${island.max_visitors} ${isFull ? `<span style="color:red">${t.status_full}</span>` : `<span style="color:green">${t.status_avail}</span>`}`;
+            statusBar.innerHTML = `島上人數: ${currentOnIsland} / ${island.max_visitors} ${isFull ? '<span style="color:red">(已滿)</span>' : '<span style="color:green">(有名額)</span>'}`;
 
-            if(queue.length === 0) list.innerHTML = `<li style='justify-content:center;color:#999'>${t.no_queue}</li>`;
+            if(queue.length === 0) list.innerHTML = "<li style='justify-content:center;color:#999'>暫時冇人排隊</li>";
 
             queue.forEach((q, idx) => {
                 let statusHtml = "";
                 if(q.status === 'on_island') {
                     const diff = new Date(q.start_time).getTime() + (10*60000) - serverNow;
                     if(diff > 0) {
-                        const m = Math.floor(diff/60000); const s = Math.floor((diff%60000)/1000);
-                        statusHtml = `<span class="play">${t.status_playing} (${m}m ${s}s)</span>`;
-                    } else statusHtml = `<span style="color:red">${t.status_timeup}</span>`;
+                        const m = Math.floor(diff/60000);
+                        const s = Math.floor((diff%60000)/1000);
+                        statusHtml = `<span class="play">🏝️ 玩樂中 (${m}分${s}秒)</span>`;
+                    } else statusHtml = `<span style="color:red">時間到</span>`;
                 } else if (q.status === 'pending_entry') {
                     const diff = Math.floor((new Date(q.pending_start_time).getTime() + 30000 - serverNow)/1000);
-                    if(diff > 0) statusHtml = `<span class="pending">${t.status_entering} ${diff} ${t.status_sec}</span>`;
-                    else statusHtml = `<span style="color:red">${t.status_timeout}</span>`;
+                    if(diff > 0) statusHtml = `<span class="pending">🔔 請入島！剩餘 ${diff} 秒</span>`;
+                    else statusHtml = `<span style="color:red">逾時</span>`;
                 } else {
-                    statusHtml = `<span class="wait">${t.status_waiting}</span>`;
+                    statusHtml = `<span class="wait">等待中</span>`;
                 }
                 list.innerHTML += `<li><span>${q.visitor_name}</span>${statusHtml}</li>`;
             });
 
+            // --- 按鈕區域 (Action Area) ---
             if(!user) {
-                action.innerHTML = `<a href="login.html" class="btn blue" style="text-decoration:none">${t.btn_login}</a>`;
+                action.innerHTML = `<a href="login.html" class="btn blue" style="text-decoration:none">請先登入</a>`;
             } else if(hostEmail === user.email) {
-                 action.innerHTML = `<p>${t.btn_host}</p>`;
+                 action.innerHTML = `<p>你係島主，可於此頁回覆留言。</p>`;
             } else if(!myStatus) {
-                action.innerHTML = `<button onclick="api('join')" class="btn blue">${t.btn_join}</button>`;
+                action.innerHTML = `<button onclick="api('join')" class="btn blue">➕ 加入排隊</button>`;
             } else if(myStatus === 'waiting') {
-                action.innerHTML = `<p>${t.btn_wait_text}</p><button onclick="api('leave')" class="btn red">${t.btn_leave_q}</button>`;
-            } else if(myStatus === 'pending_entry') {
-                const diff = Math.floor((new Date(myData.pending_start_time).getTime() + 30000 - serverNow)/1000);
                 action.innerHTML = `
-                    <h3 style="color:#d35400; margin:0;">${t.btn_pending_title}</h3>
-                    <p>${t.btn_pending_text.replace('$s', (diff>0?diff:0))}</p>
-                    <div class="dodo-highlight">${island.dodo_code}</div>
-                    <button onclick="api('enter')" class="btn green">${t.btn_pending_go}</button>
-                    <button onclick="api('leave')" class="btn red">${t.btn_pending_giveup}</button>
+                    <p>排隊中... <br>輪到你時，下方會顯示 Dodo Code。</p>
+                    <button onclick="api('leave')" class="btn red">❌ 唔排了</button>
+                `;
+            } else if(myStatus === 'pending_entry') {
+                // [修正] 這裡直接顯示 Dodo Code
+                const diff = Math.floor((new Date(myData.pending_start_time).getTime() + 30000 - serverNow)/1000);
+                
+                // 確保 island.dodo_code 是真密碼 (後端已經處理過，如果是 pending_entry 會傳真密碼)
+                const codeToShow = island.dodo_code; 
+
+                action.innerHTML = `
+                    <h3 style="color:#d35400; margin:0;">🎉 輪到你了！</h3>
+                    <p>請在 Switch 輸入下方密碼：</p>
+                    
+                    <div class="dodo-highlight">${codeToShow}</div>
+                    
+                    <p style="font-weight:bold;color:red">請於 ${diff>0?diff:0} 秒內成功起飛並按下確認！</p>
+                    <button onclick="api('enter')" class="btn green">✈️ 我已成功起飛</button>
+                    <button onclick="api('leave')" class="btn red">❌ 放棄機會</button>
                 `;
             } else if(myStatus === 'on_island') {
                 action.innerHTML = `
-                    <h3 style="color:#c0392b">${t.btn_onisland_title}</h3>
-                    <button onclick="api('leave')" class="btn red">${t.btn_onisland_leave}</button>
+                    <h3 style="color:#c0392b">計時中！請於 10 分鐘內離開。</h3>
+                    <button onclick="api('leave')" class="btn red">👋 我已離開島嶼</button>
                 `;
             }
         }
@@ -253,12 +210,12 @@
 
         async function sendComment() {
             const input = document.getElementById('chat-input');
-            if(!user) { alert(t.btn_login); return; }
+            if(!user) { alert("請先登入"); return; }
             if(!input.value.trim()) return;
             try {
                 await fetch(`${API_URL}/comment`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ hostEmail, userEmail: user.email, userName: user.username, message: input.value.trim() }) });
                 input.value = ""; loadData();
-            } catch(e) { alert("Failed"); }
+            } catch(e) { alert("發送失敗"); }
         }
 
         async function api(act) {

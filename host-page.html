@@ -2,30 +2,23 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>管理島嶼 (Manage Island)</title>
+    <title>我嘅島嶼</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px}
         .box{max-width:600px;margin:0 auto;background:white;padding:30px;border-radius:15px;border:2px solid #96C8A4}
         input,textarea,select{width:100%;padding:12px;margin:5px 0 15px 0;border:2px solid #ddd;border-radius:10px;box-sizing:border-box;font-family:inherit;font-size:1rem}
         label{font-weight:bold;color:#4A7A5C}
-        .sub-label{font-size:0.8rem;color:#999;font-weight:normal;margin-left:5px;}
         .btn{width:100%;padding:15px;border:none;border-radius:10px;cursor:pointer;color:white;font-size:1.2rem}
         .green{background:#96C8A4} .red{background:#d9534f} .blue{background:#73a0c0}
-        .lang-switcher{text-align:center;margin-bottom:20px;font-size:0.9rem}.lang-switcher a{color:var(--ac-blue);text-decoration:none;padding:0 5px}
     </style>
 </head>
 <body>
-    <div class="lang-switcher">
-      <a href="?lang=zh">中文</a> | 
-      <a href="?lang=en">EN</a> | 
-      <a href="?lang=ja">日本語</a>
-    </div>
     <div style="text-align:center;margin-bottom:20px">
-        <h1 data-i18n="title">✈️ 管理我嘅島</h1>
-        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold" data-i18n="home_link">← 返首頁</a>
+        <h1>✈️ 管理我嘅島</h1>
+        <a href="index.html" style="text-decoration:none;color:#73a0c0;font-weight:bold">← 返首頁</a>
     </div>
-    <div class="box" id="content" data-i18n="loading">檢查中...</div>
+    <div class="box" id="content">檢查中...</div>
 
     <script>
         const API_URL = "https://api.ttctv-105.cc";
@@ -33,100 +26,49 @@
         if(!user) window.location.href="login.html";
 
         const content = document.getElementById('content');
-        
-        const translations = {
-            'zh': {
-                'title': '✈️ 管理我嘅島', 'home_link': '← 返首頁', 'loading': '檢查中...', 'connect_fail': '連線失敗',
-                'host_title': '登記開島', 'dodo': 'Dodo Code™', 'island_name': '島名', 'limit': '同時上島人數限制',
-                'notice': '⚠️ 進島注意事項', 'note': '備註 (列表顯示用)', 'host_btn': '確認開島',
-                'close_title': '開放中...', 'name_label': '島名:', 'limit_label': '限制:', 'people': '人',
-                'view_queue': '👁️ 檢視排隊 & 留言', 'close_btn': '⚠️ 立即關島', 'confirm_close': '確定關島？'
-            },
-            'en': {
-                'title': '✈️ Manage My Island', 'home_link': '← Back to Home', 'loading': 'Checking status...', 'connect_fail': 'Connection Error',
-                'host_title': 'Open Island', 'dodo': 'Dodo Code™', 'island_name': 'Island Name', 'limit': 'Visitor Limit',
-                'notice': '⚠️ Notice for Visitors', 'note': 'Note (for list)', 'host_btn': 'Confirm & Open',
-                'close_title': 'Currently Open...', 'name_label': 'Name:', 'limit_label': 'Limit:', 'people': 'people',
-                'view_queue': '👁️ View Queue & Chat', 'close_btn': '⚠️ Close Island Now', 'confirm_close': 'Confirm close island?'
-            },
-            'ja': {
-                'title': '✈️ 島の管理', 'home_link': '← ホームに戻る', 'loading': '確認中...', 'connect_fail': '接続エラー',
-                'host_title': '島を開く', 'dodo': 'Dodo Code™', 'island_name': '島名', 'limit': '同時訪問人数',
-                'notice': '⚠️ 訪問者への注意事項', 'note': '備考 (リスト用)', 'host_btn': '確認して開く',
-                'close_title': '開放中...', 'name_label': '島名:', 'limit_label': '制限:', 'people': '人',
-                'view_queue': '👁️ 待機列とチャットを見る', 'close_btn': '⚠️ すぐに島を閉じる', 'confirm_close': '島を閉じますか？'
-            }
-        };
-
-        function getLanguage() {
-            const urlLang = new URLSearchParams(window.location.search).get('lang');
-            if (urlLang && translations[urlLang]) return urlLang;
-            const browserLang = navigator.language.split('-')[0];
-            if (browserLang && translations[browserLang]) return browserLang;
-            return 'zh';
-        }
-        function translatePage(lang) {
-            const langDict = translations[lang] || translations['zh'];
-            document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (langDict[key]) el.innerHTML = langDict[key]; });
-            document.querySelectorAll('a').forEach(a => {
-                try {
-                    if (a.href && (a.protocol === window.location.protocol || a.protocol === "file:")) {
-                        const url = new URL(a.href, window.location.href);
-                        if (url.hostname === window.location.hostname || url.protocol === "file:") {
-                            if (a.getAttribute('href') !== '#') {
-                                url.searchParams.set('lang', lang);
-                                a.href = url.href;
-                            }
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            });
-        }
-        
-        const currentLang = getLanguage();
-        const t = translations[currentLang] || translations['zh'];
-        document.addEventListener('DOMContentLoaded', () => {
-            checkStatus();
-            translatePage(currentLang);
-        });
+        checkStatus();
 
         async function checkStatus() {
             try {
                 const res = await fetch(`${API_URL}/my-status?email=${encodeURIComponent(user.email)}`);
                 const json = await res.json();
                 if(json.data) showClose(json.data); else showHost();
-                translatePage(currentLang);
-            } catch(e) { content.innerHTML = t.connect_fail; }
+            } catch(e) { content.innerHTML = "連線失敗"; }
         }
 
         function showHost() {
             content.innerHTML = `
-                <h3 style="text-align:center" data-i18n="host_title"></h3>
-                <label data-i18n="dodo">Dodo Code™</label>
+                <h3>登記開島</h3>
+                <label>Dodo Code™</label>
                 <input id="dodo" placeholder="5位 Code" maxlength="5">
-                <label data-i18n="island_name">島名</label>
+                <label>島名</label>
                 <input id="name" value="${user.username}的島">
-                <label data-i18n="limit">同時上島人數限制</label>
+                <label>同時上島人數限制</label>
                 <select id="maxUsers">
-                    <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
-                    <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                    <option value="2">2人</option>
+                    <option value="3">3人</option>
+                    <option value="4" selected>4人</option>
+                    <option value="5">5人</option>
+                    <option value="6">6人</option>
+                    <option value="7">7人</option>
+                    <option value="8">8人</option>
                 </select>
-                <label style="color:#e67e22" data-i18n="notice">⚠️ 進島注意事項</label>
-                <textarea id="notice" placeholder="例如: 只限機場離開..."></textarea>
-                <label data-i18n="note">備註 (列表顯示用)</label>
+                <label style="color:#e67e22">⚠️ 進島注意事項</label>
+                <textarea id="notice" placeholder="例如: 只限機場離開、禁穿潛水衣..."></textarea>
+                <label>備註</label>
                 <textarea id="note" placeholder="例如: 賣大頭菜 500！"></textarea>
-                <button onclick="host()" class="btn green" data-i18n="host_btn">確認開島</button>
+                <button onclick="host()" class="btn green">確認開島</button>
             `;
         }
 
         function showClose(data) {
             content.innerHTML = `
-                <h3 style="text-align:center;color:#4A7A5C" data-i18n="close_title"></h3>
-                <p><b data-i18n="name_label"></b> ${data.island_name}</p>
-                <p><b data-i18n="limit_label"></b> ${data.max_visitors} <span data-i18n="people">人</span></p>
+                <h3 style="text-align:center;color:#4A7A5C">開放中...</h3>
+                <p>島名: ${data.island_name}</p>
+                <p>限制: ${data.max_visitors} 人</p>
                 <p style="font-size:1.5rem;color:#73a0c0;font-weight:bold;text-align:center">${data.dodo_code}</p>
-                <a href="island.html?host=${encodeURIComponent(user.email)}" class="btn blue" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-bottom:10px" data-i18n="view_queue"></a>
-                <button onclick="closeIsland()" class="btn red" data-i18n="close_btn"></button>
+                <a href="island.html?host=${encodeURIComponent(user.email)}" class="btn blue" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-bottom:10px">👁️ 檢視排隊 & 留言</a>
+                <button onclick="closeIsland()" class="btn red">⚠️ 立即關島</button>
             `;
         }
 
@@ -143,7 +85,7 @@
         }
 
         async function closeIsland() {
-            if(!confirm(t.confirm_close)) return;
+            if(!confirm("確定關島？")) return;
             await fetch(`${API_URL}/close`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email: user.email}) });
             checkStatus();
         }
