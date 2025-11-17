@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>動森島嶼中心v2</title>
+    <title>動森島嶼中心 (ACNH Center)</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --ac-green: #96C8A4; --ac-blue: #73a0c0; --ac-cream: #F5F5E8; --ac-brown: #8B5A2B; --ac-white: #ffffff; }
@@ -15,19 +15,30 @@
         .card-h { font-size: 1.5rem; font-weight: bold; color: #4A7A5C; margin-bottom: 10px; }
         .btn-go { display:block; text-align:center; background:#73a0c0; color:white; padding:10px; text-decoration:none; border-radius:8px; margin-top:15px; font-weight:bold; }
         .people-count { position: absolute; top: 20px; right: 20px; background: #e67e22; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .lang-switcher { text-align: center; margin-bottom: 20px; font-size: 0.9rem; }
+        .lang-switcher a { color: var(--ac-blue); text-decoration: none; padding: 0 5px; }
     </style>
 </head>
 <body>
-    <header><h1>🍃 動森島嶼中心</h1><div id="user-bar"></div></header>
+    <div class="lang-switcher">
+      <a href="?lang=zh">中文</a> | 
+      <a href="?lang=en">EN</a> | 
+      <a href="?lang=ja">日本語</a>
+    </div>
+    
+    <header>
+        <h1 data-i18n="title">🍃 動森島嶼中心</h1>
+        <div id="user-bar"></div>
+    </header>
     <nav>
-        <a href="host-page.html" class="button">我嘅島嶼 (Host)</a>
-        <button onclick="loadIslands()" class="button refresh">F5 列表</button>
-        <button onclick="logout()" class="button" style="background:#d9534f">登出</button>
+        <a href="host-page.html" class="button" data-i18n="nav_host">我嘅島嶼 (Host)</a>
+        <button onclick="loadIslands()" class="button refresh" data-i18n="nav_refresh">F5 列表</button>
+        <button onclick="logout()" class="button" style="background:#d9534f" data-i18n="nav_logout">登出</button>
     </nav>
     <main id="list"></main>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc"; // *** 請填入正確網址 ***
+        const API_URL = "https://api.ttctv-105.cc"; 
         const user = JSON.parse(localStorage.getItem('acnh_user'));
         if(user) document.getElementById('user-bar').innerText = `Hi, ${user.username}`;
 
@@ -35,12 +46,17 @@
 
         async function loadIslands() {
             const list = document.getElementById('list');
-            list.innerHTML = "載入中...";
+            list.innerHTML = `<span data-i18n="loading">載入中...</span>`;
+            translatePage(currentLang); // 確保 "Loading" 也被翻譯
             try {
                 const res = await fetch(`${API_URL}/islands`);
                 const json = await res.json();
                 list.innerHTML = "";
-                if(!json.data || json.data.length===0) { list.innerHTML="暫無開放島嶼"; return; }
+                if(!json.data || json.data.length===0) { 
+                    list.innerHTML = `<span data-i18n="no_island">暫無開放島嶼</span>`; 
+                    translatePage(currentLang);
+                    return; 
+                }
 
                 json.data.forEach(island => {
                     const queueCount = island.queue_count || 0;
@@ -49,18 +65,75 @@
                     const div = document.createElement('div');
                     div.className = 'card';
                     div.innerHTML = `
-                        <div class="people-count">👫 ${queueCount} 人排隊中</div>
+                        <div class="people-count">👫 ${queueCount} <span data-i18n="card_queuing">人排隊中</span></div>
                         <div class="card-h"><span>${island.island_name}</span></div>
-                        <div>Host: ${island.user_email.split('@')[0]}</div>
-                        <div>限制: ${max} 人</div>
-                        <div>備註: ${island.note || '-'}</div>
-                        <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go">👉 進入排隊 / 詳情</a>
+                        <div><b data-i18n="card_host">Host:</b> ${island.user_email.split('@')[0]}</div>
+                        <div><b data-i18n="card_limit">限制:</b> ${max} <span data-i18n="card_people">人</span></div>
+                        <div><b data-i18n="card_note">備註:</b> ${island.note || '-'}</div>
+                        <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go" data-i18n="card_join">👉 進入排隊 / 詳情</a>
                     `;
                     list.appendChild(div);
                 });
-            } catch(e) { list.innerHTML = "連線失敗"; }
+                translatePage(currentLang); // 翻譯所有新加入的卡片
+            } catch(e) { 
+                list.innerHTML = `<span data-i18n="load_fail">連線失敗</span>`; 
+                translatePage(currentLang);
+            }
         }
-        loadIslands();
+        
+        // --- I18n Script ---
+        const translations = {
+            'zh': {
+                'title': '🍃 動森島嶼中心', 'nav_host': '我嘅島嶼 (Host)', 'nav_refresh': 'F5 列表', 'nav_logout': '登出',
+                'loading': '載入中...', 'no_island': '暫無開放島嶼', 'load_fail': '連線失敗',
+                'card_queuing': '人排隊中', 'card_host': 'Host:', 'card_limit': '限制:', 'card_people': '人', 'card_note': '備註:', 'card_join': '👉 進入排隊 / 詳情'
+            },
+            'en': {
+                'title': '🍃 ACNH Island Center', 'nav_host': 'My Island (Host)', 'nav_refresh': 'Refresh', 'nav_logout': 'Logout',
+                'loading': 'Loading...', 'no_island': 'No Islands Open', 'load_fail': 'Connection Error',
+                'card_queuing': ' Queuing', 'card_host': 'Host:', 'card_limit': 'Limit:', 'card_people': 'people', 'card_note': 'Note:', 'card_join': '👉 Join Queue / Details'
+            },
+            'ja': {
+                'title': '🍃 あつ森 島の広場', 'nav_host': 'マイ島 (ホスト)', 'nav_refresh': '更新', 'nav_logout': 'ログアウト',
+                'loading': '読み込み中...', 'no_island': '現在開いている島はありません', 'load_fail': '接続エラー',
+                'card_queuing': '人待機中', 'card_host': 'ホスト:', 'card_limit': '制限:', 'card_people': '人', 'card_note': '備考:', 'card_join': '👉 待機列に参加 / 詳細'
+            }
+        };
+
+        function getLanguage() {
+            const urlLang = new URLSearchParams(window.location.search).get('lang');
+            if (urlLang && translations[urlLang]) return urlLang;
+            const browserLang = navigator.language.split('-')[0];
+            if (browserLang && translations[browserLang]) return browserLang;
+            return 'zh';
+        }
+
+        function translatePage(lang) {
+            const langDict = translations[lang] || translations['zh'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (langDict[key]) el.innerHTML = langDict[key];
+            });
+            document.querySelectorAll('a').forEach(a => {
+                try {
+                    if (a.href && (a.protocol === window.location.protocol || a.protocol === "file:")) {
+                        const url = new URL(a.href, window.location.href);
+                        if (url.hostname === window.location.hostname || url.protocol === "file:") {
+                            if (a.getAttribute('href') !== '#') {
+                                url.searchParams.set('lang', lang);
+                                a.href = url.href;
+                            }
+                        }
+                    }
+                } catch (e) { /* ignore */ }
+            });
+        }
+        
+        const currentLang = getLanguage();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadIslands();
+            translatePage(currentLang);
+        });
     </script>
 </body>
 </html>
