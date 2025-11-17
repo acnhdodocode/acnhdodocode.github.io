@@ -38,6 +38,7 @@
         const API_URL = "https://api.ttctv-105.cc";
         const msg = document.getElementById('msg');
         
+        // --- I18n Script ---
         const translations = {
             'zh': {
                 'title': '📝 註冊帳號', 'email': 'Email', 'nickname': 'Nick Name (排隊時顯示)', 'nickname_placeholder': '例如: 寶寶島島主',
@@ -58,6 +59,9 @@
                 'loading': '処理中...', 'register_success': '登録しました！ ログインしてください。', 'connect_fail': '接続エラー'
             }
         };
+        
+        function getLanguage() { /* ... (同上) ... */ }
+        function translatePage(lang) { /* ... (同上) ... */ }
         
         function getLanguage() {
             const urlLang = new URLSearchParams(window.location.search).get('lang');
@@ -88,6 +92,7 @@
         const currentLang = getLanguage();
         document.addEventListener('DOMContentLoaded', () => translatePage(currentLang));
 
+        // --- Register Function ---
         async function register() {
             const email = document.getElementById('email').value;
             const username = document.getElementById('username').value;
@@ -113,7 +118,7 @@
                     else msg.innerText = data.message;
                 }
             } catch (e) { 
-                msg.innerText = translations[currentLang].connect_fail; 
+                msg.innerText = translations[currentLang].connect_fail;
             }
         }
     </script>
