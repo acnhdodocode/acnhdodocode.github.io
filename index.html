@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -38,48 +39,8 @@
     <main id="list"></main>
 
     <script>
-        const API_URL = "https://api.ttctv-105.cc"; 
+        const API_URL = "https://api.ttctv-105.cc"; // *** 你的 API 網址 ***
         const user = JSON.parse(localStorage.getItem('acnh_user'));
-        if(user) document.getElementById('user-bar').innerText = `Hi, ${user.username}`;
-
-        function logout() { localStorage.removeItem('acnh_user'); window.location.href="login.html"; }
-
-        async function loadIslands() {
-            const list = document.getElementById('list');
-            list.innerHTML = `<span data-i18n="loading">載入中...</span>`;
-            translatePage(currentLang); // 確保 "Loading" 也被翻譯
-            try {
-                const res = await fetch(`${API_URL}/islands`);
-                const json = await res.json();
-                list.innerHTML = "";
-                if(!json.data || json.data.length===0) { 
-                    list.innerHTML = `<span data-i18n="no_island">暫無開放島嶼</span>`; 
-                    translatePage(currentLang);
-                    return; 
-                }
-
-                json.data.forEach(island => {
-                    const queueCount = island.queue_count || 0;
-                    const max = island.max_visitors || 4;
-                    
-                    const div = document.createElement('div');
-                    div.className = 'card';
-                    div.innerHTML = `
-                        <div class="people-count">👫 ${queueCount} <span data-i18n="card_queuing">人排隊中</span></div>
-                        <div class="card-h"><span>${island.island_name}</span></div>
-                        <div><b data-i18n="card_host">Host:</b> ${island.user_email.split('@')[0]}</div>
-                        <div><b data-i18n="card_limit">限制:</b> ${max} <span data-i18n="card_people">人</span></div>
-                        <div><b data-i18n="card_note">備註:</b> ${island.note || '-'}</div>
-                        <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go" data-i18n="card_join">👉 進入排隊 / 詳情</a>
-                    `;
-                    list.appendChild(div);
-                });
-                translatePage(currentLang); // 翻譯所有新加入的卡片
-            } catch(e) { 
-                list.innerHTML = `<span data-i18n="load_fail">連線失敗</span>`; 
-                translatePage(currentLang);
-            }
-        }
         
         // --- I18n Script ---
         const translations = {
@@ -130,6 +91,48 @@
         }
         
         const currentLang = getLanguage();
+        // --- End I18n ---
+
+        if(user) document.getElementById('user-bar').innerText = `Hi, ${user.username}`;
+        
+        function logout() { localStorage.removeItem('acnh_user'); window.location.href=`login.html?lang=${currentLang}`; }
+
+        async function loadIslands() {
+            const list = document.getElementById('list');
+            list.innerHTML = `<span data-i18n="loading">載入中...</span>`;
+            translatePage(currentLang);
+            try {
+                const res = await fetch(`${API_URL}/islands`);
+                const json = await res.json();
+                list.innerHTML = "";
+                if(!json.data || json.data.length===0) { 
+                    list.innerHTML = `<span data-i18n="no_island">暫無開放島嶼</span>`; 
+                    translatePage(currentLang);
+                    return; 
+                }
+
+                json.data.forEach(island => {
+                    const queueCount = island.queue_count || 0;
+                    const max = island.max_visitors || 4;
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.innerHTML = `
+                        <div class="people-count">👫 ${queueCount} <span data-i18n="card_queuing">人排隊中</span></div>
+                        <div class="card-h"><span>${island.island_name}</span></div>
+                        <div><b data-i18n="card_host">Host:</b> ${island.user_email.split('@')[0]}</div>
+                        <div><b data-i18n="card_limit">限制:</b> ${max} <span data-i18n="card_people">人</span></div>
+                        <div><b data-i18n="card_note">備註:</b> ${island.note || '-'}</div>
+                        <a href="island.html?host=${encodeURIComponent(island.user_email)}" class="btn-go" data-i18n="card_join">👉 進入排隊 / 詳情</a>
+                    `;
+                    list.appendChild(div);
+                });
+                translatePage(currentLang);
+            } catch(e) { 
+                list.innerHTML = `<span data-i18n="load_fail">連線失敗</span>`; 
+                translatePage(currentLang);
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
             loadIslands();
             translatePage(currentLang);
