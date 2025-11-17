@@ -34,12 +34,11 @@
 
         const content = document.getElementById('content');
         
-        // --- I18n Script ---
         const translations = {
             'zh': {
                 'title': '✈️ 管理我嘅島', 'home_link': '← 返首頁', 'loading': '檢查中...', 'connect_fail': '連線失敗',
                 'host_title': '登記開島', 'dodo': 'Dodo Code™', 'island_name': '島名', 'limit': '同時上島人數限制',
-                'notice': '⚠️ 進島注意事項', 'note': '備註', 'host_btn': '確認開島',
+                'notice': '⚠️ 進島注意事項', 'note': '備註 (列表顯示用)', 'host_btn': '確認開島',
                 'close_title': '開放中...', 'name_label': '島名:', 'limit_label': '限制:', 'people': '人',
                 'view_queue': '👁️ 檢視排隊 & 留言', 'close_btn': '⚠️ 立即關島', 'confirm_close': '確定關島？'
             },
@@ -59,7 +58,6 @@
             }
         };
 
-        // 輔助函數 (複製貼上)
         function getLanguage() {
             const urlLang = new URLSearchParams(window.location.search).get('lang');
             if (urlLang && translations[urlLang]) return urlLang;
@@ -86,24 +84,24 @@
         }
         
         const currentLang = getLanguage();
+        const t = translations[currentLang] || translations['zh'];
         document.addEventListener('DOMContentLoaded', () => {
             checkStatus();
             translatePage(currentLang);
         });
 
-        // --- Page Functions ---
         async function checkStatus() {
             try {
                 const res = await fetch(`${API_URL}/my-status?email=${encodeURIComponent(user.email)}`);
                 const json = await res.json();
                 if(json.data) showClose(json.data); else showHost();
-                translatePage(currentLang); // 翻譯動態內容
-            } catch(e) { content.innerHTML = translations[currentLang].connect_fail; }
+                translatePage(currentLang);
+            } catch(e) { content.innerHTML = t.connect_fail; }
         }
 
         function showHost() {
             content.innerHTML = `
-                <h3 style="text-align:center" data-i18n="host_title">登記開島</h3>
+                <h3 style="text-align:center" data-i18n="host_title"></h3>
                 <label data-i18n="dodo">Dodo Code™</label>
                 <input id="dodo" placeholder="5位 Code" maxlength="5">
                 <label data-i18n="island_name">島名</label>
@@ -115,7 +113,7 @@
                 </select>
                 <label style="color:#e67e22" data-i18n="notice">⚠️ 進島注意事項</label>
                 <textarea id="notice" placeholder="例如: 只限機場離開..."></textarea>
-                <label data-i18n="note">備註</label>
+                <label data-i18n="note">備註 (列表顯示用)</label>
                 <textarea id="note" placeholder="例如: 賣大頭菜 500！"></textarea>
                 <button onclick="host()" class="btn green" data-i18n="host_btn">確認開島</button>
             `;
@@ -123,12 +121,12 @@
 
         function showClose(data) {
             content.innerHTML = `
-                <h3 style="text-align:center;color:#4A7A5C" data-i18n="close_title">開放中...</h3>
-                <p><b data-i18n="name_label">島名:</b> ${data.island_name}</p>
-                <p><b data-i18n="limit_label">限制:</b> ${data.max_visitors} <span data-i18n="people">人</span></p>
+                <h3 style="text-align:center;color:#4A7A5C" data-i18n="close_title"></h3>
+                <p><b data-i18n="name_label"></b> ${data.island_name}</p>
+                <p><b data-i18n="limit_label"></b> ${data.max_visitors} <span data-i18n="people">人</span></p>
                 <p style="font-size:1.5rem;color:#73a0c0;font-weight:bold;text-align:center">${data.dodo_code}</p>
-                <a href="island.html?host=${encodeURIComponent(user.email)}" class="btn blue" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-bottom:10px" data-i18n="view_queue">👁️ 檢視排隊 & 留言</a>
-                <button onclick="closeIsland()" class="btn red" data-i18n="close_btn">⚠️ 立即關島</button>
+                <a href="island.html?host=${encodeURIComponent(user.email)}" class="btn blue" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-bottom:10px" data-i18n="view_queue"></a>
+                <button onclick="closeIsland()" class="btn red" data-i18n="close_btn"></button>
             `;
         }
 
@@ -145,7 +143,7 @@
         }
 
         async function closeIsland() {
-            if(!confirm(translations[currentLang].confirm_close)) return;
+            if(!confirm(t.confirm_close)) return;
             await fetch(`${API_URL}/close`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email: user.email}) });
             checkStatus();
         }
