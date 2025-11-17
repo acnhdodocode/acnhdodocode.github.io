@@ -62,7 +62,6 @@
         const hostEmail = urlParams.get('host');
         const user = JSON.parse(localStorage.getItem('acnh_user'));
 
-        // --- I18n Script ---
         const translations = {
             'zh': {
                 'home_link': '← 返列表', 'loading': '載入中...', 'queue_title': '👫 排隊列表 (每5秒更新)',
@@ -132,7 +131,6 @@
         const t = translations[currentLang] || translations['zh'];
         document.addEventListener('DOMContentLoaded', () => translatePage(currentLang));
 
-        // --- Page Functions ---
         setInterval(loadData, 5000);
         loadData();
 
