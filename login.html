@@ -28,6 +28,7 @@
         const API_URL = "https://api.ttctv-105.cc";
         const msg = document.getElementById('msg');
         
+        // --- I18n Script ---
         const translations = {
             'zh': {
                 'title': '🔑 登入', 'password': '密碼', 'login_btn': '登入', 'forgot_pwd': '忘記密碼？',
@@ -56,8 +57,14 @@
 
         function translatePage(lang) {
             const langDict = translations[lang] || translations['zh'];
-            document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (langDict[key]) el.innerHTML = langDict[key]; });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.getAttribute('data-i18n-placeholder'); if (langDict[key]) el.placeholder = langDict[key]; });
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (langDict[key]) el.innerHTML = langDict[key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (langDict[key]) el.placeholder = langDict[key];
+            });
             document.querySelectorAll('a').forEach(a => {
                 try {
                     if (a.href && (a.protocol === window.location.protocol || a.protocol === "file:")) {
@@ -76,12 +83,15 @@
         const currentLang = getLanguage();
         document.addEventListener('DOMContentLoaded', () => translatePage(currentLang));
         
+        // --- Login Function ---
         async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             msg.innerText = translations[currentLang].loading;
             try {
                 const res = await fetch(`${API_URL}/login`, {
                     method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value })
+                    body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
