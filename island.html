@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>排隊詳情</title>
+    <title>排隊詳情2</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body{font-family:'Nunito',sans-serif;background:#F5F5E8;color:#8B5A2B;padding:20px;margin:0}
@@ -75,15 +75,9 @@
             return translations[browserLang] ? browserLang : 'zh';
         }
 
-        // --- 安全性函數：防 XSS 攻擊 ---
         function escapeHTML(str) {
             if (!str) return "";
-            return str
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         function translatePage(lang) {
@@ -99,13 +93,11 @@
             document.querySelectorAll('a').forEach(a => {
                 if (a.closest('.lang-switcher')) return;
                 try {
-                    if (a.href && !a.href.includes('javascript') && (a.protocol === window.location.protocol || a.protocol === "file:")) {
-                        const url = new URL(a.href, window.location.href);
-                        if (url.hostname === window.location.hostname || url.protocol === "file:") {
-                            if (a.getAttribute('href') !== '#') {
-                                url.searchParams.set('lang', lang);
-                                a.href = url.href;
-                            }
+                    const url = new URL(a.href, window.location.href);
+                    if (url.hostname === window.location.hostname || url.protocol === "file:") {
+                        if (a.getAttribute('href') !== '#') {
+                            url.searchParams.set('lang', lang);
+                            a.href = url.href;
                         }
                     }
                 } catch (e) { }
@@ -138,14 +130,16 @@
             } catch(e) { console.log(e); }
         }
 
+        // --- [重點修正邏輯] ---
         function renderInfo(island) {
-            const isHost = user && user.email === island.user_email;
-            const dodoDisplay = isHost ? island.dodo_code : "******";
-            const dodoStyle = isHost ? "color:#73a0c0" : "color:#ccc;letter-spacing:normal";
+            // 如果後端回傳的 code 不是 ******，代表權限通過（是島主或是輪到該玩家了）
+            const isMasked = island.dodo_code === "******";
+            const dodoDisplay = island.dodo_code;
+            const dodoStyle = isMasked ? "color:#ccc;letter-spacing:normal" : "color:#27ae60;background:#e8f8f5;border-radius:10px;padding:5px 15px;";
             
             document.getElementById('info').innerHTML = `
                 <h2>🌴 ${escapeHTML(island.island_name)}</h2>
-                <div style="font-size:2rem;font-weight:bold;margin:10px;letter-spacing:5px;${dodoStyle}">${escapeHTML(dodoDisplay)}</div>
+                <div style="font-size:2.5rem;font-weight:bold;margin:15px;letter-spacing:5px;${dodoStyle}">${escapeHTML(dodoDisplay)}</div>
                 <p>${t.host} ${escapeHTML(island.user_email)} (${t.limit} ${island.max_visitors} ${t.people})</p>
                 <p>${t.note} ${escapeHTML(island.note || ' - ')}</p>
             `;
@@ -178,7 +172,7 @@
 
             if(queue.length === 0) list.innerHTML = `<li style='justify-content:center;color:#999'>${t.no_queue}</li>`;
 
-            queue.forEach((q, idx) => {
+            queue.forEach((q) => {
                 let statusHtml = "";
                 if(q.status === 'on_island') {
                     const diff = new Date(q.start_time).getTime() + (10*60000) - serverNow;
@@ -193,20 +187,20 @@
                     else statusHtml = `<span style="color:red">${t.timeout}</span>`;
                 } else { statusHtml = `<span class="wait">${t.waiting}</span>`; }
                 
-                // 這裡也加入 escapeHTML 保護用戶名
                 list.innerHTML += `<li><span>${escapeHTML(q.visitor_name)}</span>${statusHtml}</li>`;
             });
 
             if(!user) {
                 action.innerHTML = `<a href="login.html" class="btn blue" style="text-decoration:none">${t.login_first}</a>`;
             } else if(hostEmail === user.email) {
-                 action.innerHTML = `<p>${t.is_host}</p>`;
+                 action.innerHTML = `<p style="font-weight:bold;color:#73a0c0;">${t.is_host}</p>`;
             } else if(!myStatus) {
                 action.innerHTML = `<button onclick="api('join')" class="btn blue">${t.join_q}</button>`;
             } else if(myStatus === 'waiting') {
                 action.innerHTML = `<p>${t.wait_msg}</p><button onclick="api('leave')" class="btn red">${t.leave_q}</button>`;
             } else if(myStatus === 'pending_entry') {
                 const diff = Math.floor((new Date(myData.pending_start_time).getTime() + 30000 - serverNow)/1000);
+                // 這裡會顯示醒目的 Dodo Code
                 action.innerHTML = `
                     <h3 style="color:#d35400; margin:0;">${t.turn_title}</h3>
                     <p>${t.switch_msg}</p>
@@ -227,13 +221,11 @@
             else {
                 comments.forEach(c => {
                     const time = new Date(c.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                    const isHost = c.user_email === hostEmail ? " (Host)" : "";
+                    const isHostLabel = c.user_email === hostEmail ? " (Host)" : "";
                     const style = c.user_email === hostEmail ? "color:#d35400" : "";
-                    
-                    // [關鍵安全修改]：c.user_name 和 c.message 都經過 escapeHTML
                     html += `
                         <div class="msg-item">
-                            <span class="msg-user" style="${style}">${escapeHTML(c.user_name)}${isHost}</span>
+                            <span class="msg-user" style="${style}">${escapeHTML(c.user_name)}${isHostLabel}</span>
                             <span class="msg-time">${time}</span>
                             <div style="white-space: pre-wrap;">${escapeHTML(c.message)}</div>
                         </div>`;
@@ -244,22 +236,14 @@
 
         async function sendComment() {
             const input = document.getElementById('chat-input');
-            const val = input.value.trim(); // 1. 先去除空白
-            
+            const val = input.value.trim();
             if(!user) { alert(t.login_alert); return; }
-            if(!val) return; // 2. 檢查如果只有空白則不發送
-
+            if(!val) return;
             try {
-                // 3. 發送原始字串（建議後端也要做處理，前端負責轉義顯示）
                 await fetch(`${API_URL}/comment`, { 
                     method: 'POST', 
                     headers: {'Content-Type':'application/json'}, 
-                    body: JSON.stringify({ 
-                        hostEmail, 
-                        userEmail: user.email, 
-                        userName: user.username, 
-                        message: val 
-                    }) 
+                    body: JSON.stringify({ hostEmail, userEmail: user.email, userName: user.username, message: val }) 
                 });
                 input.value = ""; 
                 loadData();
@@ -267,6 +251,7 @@
         }
 
         async function api(act) {
+            if(!user) return;
             const res = await fetch(`${API_URL}/queue/${act}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ hostEmail, visitorEmail: user.email, visitorName: user.username }) });
             const json = await res.json();
             if(json.status === 'error') alert(json.message);
