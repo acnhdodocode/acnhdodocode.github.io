@@ -25,7 +25,7 @@
         <label data-i18n="confirm">確認密碼</label>
         <input type="password" id="confirm_password" required>
         <button onclick="register()" data-i18n="reg_btn">註冊</button>
-        <div id="msg" style="text-align:center;margin-top:10px;color:red"></div>
+        <div id="msg" style="text-align:center;margin-top:10px;color:red;font-size:0.9rem;"></div>
         <a href="login.html" data-i18n="login_link">已有帳號？登入</a>
     </div>
     <script>
@@ -36,20 +36,23 @@
             'zh': {
                 'title': '📝 註冊帳號', 'email': 'Email', 'nickname': 'Nick Name (排隊用)', 'nick_ph': '例如: 寶寶島島主',
                 'dob': '生日日期 (忘記密碼用)', 'password': '密碼', 'confirm': '確認密碼', 'reg_btn': '註冊',
-                'login_link': '已有帳號？登入', 'fill_all': '請填寫所有資料', 'pass_err': '兩次密碼不符',
-                'loading': '處理中...', 'success': '註冊成功！請登入。', 'fail': '連線失敗', 'email_taken': 'Email 已被註冊'
+                'login_link': '已有帳號？登入', 'fill_all': '請填寫所有資料且不能僅有空白', 'pass_err': '兩次密碼不符',
+                'loading': '處理中...', 'success': '註冊成功！請登入。', 'fail': '連線失敗', 'email_taken': 'Email 已被註冊',
+                'invalid_email': 'Email 格式不正確或包含非法字元', 'invalid_username': '用戶名只能包含中文、英文、數字及底線', 'pass_short': '密碼至少需要 6 位'
             },
             'en': {
                 'title': '📝 Register', 'email': 'Email', 'nickname': 'Nickname (For Queue)', 'nick_ph': 'E.g. Island Host',
                 'dob': 'Date of Birth (Recovery)', 'password': 'Password', 'confirm': 'Confirm Password', 'reg_btn': 'Register',
-                'login_link': 'Have account? Login', 'fill_all': 'Fill all fields', 'pass_err': 'Passwords mismatch',
-                'loading': 'Processing...', 'success': 'Success! Please login.', 'fail': 'Conn Error', 'email_taken': 'Email taken'
+                'login_link': 'Have account? Login', 'fill_all': 'Fill all fields (No blanks only)', 'pass_err': 'Passwords mismatch',
+                'loading': 'Processing...', 'success': 'Success! Please login.', 'fail': 'Conn Error', 'email_taken': 'Email taken',
+                'invalid_email': 'Invalid email format or illegal characters', 'invalid_username': 'Username: alphanumeric/underscores/Chinese only', 'pass_short': 'Password min 6 chars'
             },
             'ja': {
                 'title': '📝 新規登録', 'email': 'メール', 'nickname': 'ニックネーム (待機列用)', 'nick_ph': '例：島の主',
                 'dob': '生年月日 (復旧用)', 'password': 'パスワード', 'confirm': 'パスワード確認', 'reg_btn': '登録',
-                'login_link': 'ログインはこちら', 'fill_all': '全項目を入力してください', 'pass_err': 'パスワード不一致',
-                'loading': '処理中...', 'success': '登録完了！ログインしてください', 'fail': '接続エラー', 'email_taken': '登録済みメール'
+                'login_link': 'ログインはこちら', 'fill_all': '全項目を入力してください（空白のみ不可）', 'pass_err': 'パスワード不一致',
+                'loading': '処理中...', 'success': '登録完了！ログインしてください', 'fail': '接続エラー', 'email_taken': '登録済みメール',
+                'invalid_email': 'メール形式が不正です', 'invalid_username': 'ユーザー名は漢字、英数字、アンダースコアのみ', 'pass_short': 'パスワードは6文字以上'
             }
         };
 
@@ -59,58 +62,74 @@
             const browserLang = navigator.language.split('-')[0];
             return translations[browserLang] ? browserLang : 'zh';
         }
+
         function translatePage(lang) {
             const langDict = translations[lang] || translations['zh'];
-            
-            // 1. 翻譯文字內容
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (langDict[key]) el.innerHTML = langDict[key];
             });
-
-            // 2. 翻譯輸入框提示 (Placeholders) - 只在有此屬性時執行
             document.querySelectorAll('[data-i18n-ph]').forEach(el => {
                 const key = el.getAttribute('data-i18n-ph');
                 if (langDict[key]) el.placeholder = langDict[key];
             });
-
-            // 3. 更新頁面連結 (保持當前語言)
             document.querySelectorAll('a').forEach(a => {
-                // *** [關鍵修正]：如果是語言切換區 (.lang-switcher) 的連結，絕對不要修改它 ***
                 if (a.closest('.lang-switcher')) return;
-
                 try {
-                    // 只修改站內連結 (排除 javascript: 或外部連結)
                     if (a.href && !a.href.includes('javascript') && (a.protocol === window.location.protocol || a.protocol === "file:")) {
                         const url = new URL(a.href, window.location.href);
                         if (url.hostname === window.location.hostname || url.protocol === "file:") {
                             if (a.getAttribute('href') !== '#') {
-                                url.searchParams.set('lang', lang); // 將當前語言帶到下一頁
+                                url.searchParams.set('lang', lang);
                                 a.href = url.href;
                             }
                         }
                     }
-                } catch (e) { /* ignore error */ }
+                } catch (e) { }
             });
         }
+
         const currentLang = getLanguage();
         const t = translations[currentLang];
         document.addEventListener('DOMContentLoaded', () => translatePage(currentLang));
 
         async function register() {
-            const email = document.getElementById('email').value;
-            const username = document.getElementById('username').value;
+            // 獲取值並自動執行 .trim() 移除首尾空白
+            const email = document.getElementById('email').value.trim();
+            const username = document.getElementById('username').value.trim();
             const dob = document.getElementById('dob').value;
-            const password = document.getElementById('password').value;
-            const confirm = document.getElementById('confirm_password').value;
+            const password = document.getElementById('password').value.trim();
+            const confirm = document.getElementById('confirm_password').value.trim();
             
+            // 1. 必填檢查
             if(!username || !dob || !password || !email) { msg.innerText = t.fill_all; return; }
+
+            // 2. Email 正規表達式檢查 (與後端一致)
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(email)) {
+                msg.innerText = t.invalid_email;
+                return;
+            }
+
+            // 3. 用戶名正規表達式檢查 (與後端一致)
+            const usernameRegex = /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/;
+            if (!usernameRegex.test(username)) {
+                msg.innerText = t.invalid_username;
+                return;
+            }
+
+            // 4. 密碼檢查
+            if (password.length < 6) {
+                msg.innerText = t.pass_short;
+                return;
+            }
             if(password !== confirm) { msg.innerText = t.pass_err; return; }
 
             msg.innerText = t.loading;
             try {
                 const res = await fetch(`${API_URL}/register`, {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    method: 'POST', 
+                    headers: {'Content-Type':'application/json'},
                     body: JSON.stringify({ email, username, password, dob })
                 });
                 const data = await res.json();
