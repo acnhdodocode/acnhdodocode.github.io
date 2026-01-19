@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>動森島嶼中心(v1.1)</title>
+    <title>動森島嶼中心(v1.2)</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --ac-green: #96C8A4; --ac-blue: #73a0c0; --ac-cream: #F5F5E8; --ac-brown: #8B5A2B; --ac-white: #ffffff; }
@@ -38,7 +38,7 @@
     <script>
         const API_URL = "https://api.ttctv-105.cc";
         const user = JSON.parse(localStorage.getItem('acnh_user'));
-        
+        const ADMIN_EMAIL = "ericleung001@gmail.com"; // 用於判斷是否在首頁顯示按鈕
         
         // --- I18n Script ---
         const translations = {
@@ -100,7 +100,7 @@
         if(user) {
             document.getElementById('user-bar').innerText = `Hi, ${user.username}`;
             
-            // [關鍵] 檢查是否為管理員
+            // [關鍵] 檢查是否為你的 Email，是才顯示 Admin 按鈕
             if (user.email === ADMIN_EMAIL) {
                 document.getElementById('admin-btn').style.display = "inline-block";
             }
