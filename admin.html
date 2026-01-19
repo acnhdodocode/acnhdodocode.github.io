@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>ACNH Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body{font-family:'Nunito',sans-serif;background:#2c3e50;color:#ecf0f1;padding:20px}
+        .container{max-width:1000px;margin:0 auto}
+        .card{background:#34495e;padding:20px;border-radius:10px;margin-bottom:15px;border-left:5px solid #e74c3c}
+        table{width:100%;border-collapse:collapse;margin-top:10px}
+        th,td{padding:12px;text-align:left;border-bottom:1px solid #465a6e}
+        th{background:#1a252f}
+        .btn-kick{background:#e74c3c;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer}
+        .btn-kick:hover{background:#c0392b}
+        .status-tag{padding:3px 8px;border-radius:4px;font-size:0.8rem;font-weight:bold}
+        .tag-on{background:#27ae60} .tag-wait{background:#f39c12} .tag-pend{background:#2980b9}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ 全服排隊管理系統 <small>(Admin)</small></h1>
+        <p id="admin-info"></p>
+        <button onclick="loadAllData()" style="padding:10px; cursor:pointer">刷新數據 (Refresh)</button>
+        <hr>
+        <div id="main-list">載入中...</div>
+    </div>
+
+    <script>
+        const API_URL = "http://10.126.144.48:9000";
+        const user = JSON.parse(localStorage.getItem('acnh_user'));
+        const ADMIN_EMAIL = "ericleung001@gmail.com"; // *** 跟後端一致 ***
+
+        if(!user || user.email !== ADMIN_EMAIL) {
+            alert("你不是管理員！ / Access Denied");
+            window.location.href = "index.html";
+        } else {
+            document.getElementById('admin-info').innerText = `管理員帳號: ${user.email}`;
+            loadAllData();
+        }
+
+        async function loadAllData() {
+            try {
+                const res = await fetch(`${API_URL}/admin/all-queues?adminEmail=${user.email}`);
+                const json = await res.json();
+                renderTable(json.data);
+            } catch(e) { console.error(e); }
+        }
+
+        function renderTable(data) {
+            const container = document.getElementById('main-list');
+            if(!data || data.length === 0) {
+                container.innerHTML = "目前沒有任何人排隊中。";
+                return;
+            }
+
+            // 按島嶼分組顯示
+            let html = "";
+            let currentIsland = "";
+
+            data.forEach(item => {
+                if(item.island_host_email !== currentIsland) {
+                    if(currentIsland !== "") html += `</table></div>`;
+                    currentIsland = item.island_host_email;
+                    html += `
+                        <div class="card">
+                            <h3>🏝️ 島嶼: ${item.island_name} (${item.island_host_email})</h3>
+                            <table>
+                                <tr>
+                                    <th>玩家 (Visitor)</th>
+                                    <th>狀態 (Status)</th>
+                                    <th>加入時間</th>
+                                    <th>操作</th>
+                                </tr>
+                    `;
+                }
+
+                let statusClass = item.status === 'on_island' ? 'tag-on' : (item.status === 'pending_entry' ? 'tag-pend' : 'tag-wait');
+                
+                html += `
+                    <tr>
+                        <td><b>${item.visitor_name}</b><br><small>${item.visitor_email}</small></td>
+                        <td><span class="status-tag ${statusClass}">${item.status}</span></td>
+                        <td>${new Date(item.joined_at).toLocaleTimeString()}</td>
+                        <td>
+                            <button class="btn-kick" onclick="kickUser('${item.island_host_email}', '${item.visitor_email}', '${item.visitor_name}')">
+                                踢走 (Kick)
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            html += `</table></div>`;
+            container.innerHTML = html;
+        }
+
+        async function kickUser(islandEmail, visitorEmail, visitorName) {
+            if(!confirm(`確定要將「${visitorName}」強制踢出隊伍嗎？`)) return;
+
+            try {
+                const res = await fetch(`${API_URL}/admin/kick`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminEmail: user.email,
+                        targetIslandEmail: islandEmail,
+                        targetVisitorEmail: visitorEmail
+                    })
+                });
+                const result = await res.json();
+                alert(result.message);
+                loadAllData(); // 刷新
+            } catch(e) { alert("操作失敗"); }
+        }
+    </script>
+</body>
+</html>
